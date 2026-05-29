@@ -308,4 +308,12 @@ export const useEquippedAura = (): string | undefined => {
 export const useCoins = () => useGame((s) => s.coins)
 export const useCrystals = () => useGame((s) => s.crystals)
 
+/** Discipline 0..100 for the 3D aura — driven by the disciplina attribute + best streak. */
+export const useDiscipline = () => {
+  const disc = useGame((s) => s.attrs.disciplina)
+  const habits = useGame((s) => s.habits)
+  const bestStreak = habits.reduce((m, h) => Math.max(m, h.streak), 0)
+  return Math.max(0, Math.min(100, disc + bestStreak * 3))
+}
+
 export type { AttrKey }

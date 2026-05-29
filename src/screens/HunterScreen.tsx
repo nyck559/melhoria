@@ -3,8 +3,8 @@ import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, AnimatedNumber, Holo, GlowButton } from '../components/common/ui'
 import Hunter3D from '../components/character/Hunter3D'
-import { useGame, useLevelInfo, usePower, useCorruption, useEquippedAura, useCoins, useCrystals } from '../store/useGame'
-import { rankTier, ATTRS, CURRENCY } from '../data/game'
+import { useGame, useLevelInfo, usePower, useCorruption, useEquippedAura, useCoins, useCrystals, useDiscipline } from '../store/useGame'
+import { rankForLevel, rankTier, ATTRS, CURRENCY } from '../data/game'
 import { EQUIPMENT } from '../data/equipment'
 import type { AttrKey, EquipSlot, RankTier } from '../types'
 import { useAudio } from '../hooks/useAudio'
@@ -32,7 +32,9 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
   const { level } = useLevelInfo()
   const power = usePower()
   const corruption = useCorruption()
+  const discipline = useDiscipline()
   const tier = rankTier(level)
+  const rank = rankForLevel(level)
   const equipped = useGame((s) => s.equipped)
   const ownedEquip = useGame((s) => s.ownedEquip)
   const equipItem = useGame((s) => s.equipItem)
@@ -77,7 +79,7 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
 
       <Holo className="relative mb-3 h-[46vh] min-h-[380px] overflow-hidden scanlines" glow>
         <div className="absolute inset-0" style={{ background: `radial-gradient(110% 80% at 50% 110%, ${accent}44, transparent 60%)` }} />
-        <Hunter3D tier={tier} accent={accent} corrupt={corruption > 65} onTap={onCharTap} className="absolute inset-0" />
+        <Hunter3D rank={rank} accent={accent} corruption={corruption} discipline={discipline} equipped={equipped} onTap={onCharTap} className="absolute inset-0" />
 
         {/* holographic speech bubble */}
         {line && (

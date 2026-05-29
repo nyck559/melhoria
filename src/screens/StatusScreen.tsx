@@ -1,17 +1,18 @@
 import { motion, type MotionValue } from 'framer-motion'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, AnimatedNumber, EnergyBar, Holo } from '../components/common/ui'
-import Hunter from '../components/character/Hunter'
+import Hunter3D from '../components/character/Hunter3D'
 import RankBadge from '../components/hud/RankBadge'
-import { useGame, useLevelInfo, useCorruption } from '../store/useGame'
-import { ATTRS, ATTR_ORDER, RANK_DATA, rankForLevel, rankTier } from '../data/game'
+import { useGame, useLevelInfo, useCorruption, useDiscipline } from '../store/useGame'
+import { ATTRS, ATTR_ORDER, RANK_DATA, rankForLevel } from '../data/game'
 
 export default function StatusScreen({ px, py }: { px: MotionValue<number>; py: MotionValue<number> }) {
   const attrs = useGame((s) => s.attrs)
   const { level, into, need } = useLevelInfo()
   const corruption = useCorruption()
+  const discipline = useDiscipline()
+  const equipped = useGame((s) => s.equipped)
   const rank = rankForLevel(level)
-  const tier = rankTier(level)
   const rd = RANK_DATA[rank]
 
   return (
@@ -25,7 +26,7 @@ export default function StatusScreen({ px, py }: { px: MotionValue<number>; py: 
           className="absolute inset-x-0 bottom-0 h-2/3"
           style={{ background: `radial-gradient(120% 90% at 50% 120%, ${rd.color}55, transparent 60%)` }}
         />
-        <Hunter tier={tier} accent={rd.color} px={px} py={py} corrupt={corruption > 65} interactive className="absolute inset-0" />
+        <Hunter3D rank={rank} accent={rd.color} corruption={corruption} discipline={discipline} equipped={equipped} className="absolute inset-0" />
 
         {/* rank badge */}
         <div className="absolute right-3 top-3">
