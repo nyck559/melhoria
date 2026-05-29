@@ -34,10 +34,16 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
       >
         <div className="flex items-center gap-4">
           <div
-            className="grid h-20 w-20 place-items-center rounded-2xl text-4xl"
-            style={{ background: `radial-gradient(circle, ${rd.color}33, transparent 70%)`, border: `1px solid ${rd.color}66`, boxShadow: `0 0 20px ${rd.color}55` }}
+            className="h-20 w-20 overflow-hidden rounded-2xl"
+            style={{ border: `1px solid ${rd.color}66`, boxShadow: `0 0 20px ${rd.color}55` }}
           >
-            🧑‍🎤
+            <img
+              src={`${import.meta.env.BASE_URL}art/hunter_dominant.webp`}
+              alt=""
+              draggable={false}
+              className="h-full w-full select-none object-cover"
+              style={{ objectPosition: 'center top' }}
+            />
           </div>
           <div>
             <div className="font-display text-glow text-xl font-extrabold">Jin Woo</div>

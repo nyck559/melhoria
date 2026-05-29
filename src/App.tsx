@@ -78,7 +78,7 @@ export default function App() {
         </div>
 
         {/* SCREENS */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {view === 'status' && <StatusScreen key="status" px={px} py={py} />}
           {view === 'quests' && <QuestsScreen key="quests" />}
           {view === 'hunter' && <HunterScreen key="hunter" px={px} py={py} />}

@@ -27,27 +27,31 @@ ROOT
 ├── blooms de energia ambiente
 ├── névoa/fumaça rastejante
 ├── partículas (canvas, lighter blend)
-├── camada do personagem (SVG animado + parallax)
+├── camada do personagem (arte ilustrada + parallax)
 ├── aura + wisps de sombra
 ├── HUD holográfico (frames, scanlines, shimmer)
 ├── overlay de UI
 └── bottom navigation premium
 ```
 
-## Personagem
+## Personagem & arte
 
-`src/components/character/Hunter.tsx` — SVG anime **layered e animado** (sem
-PNG/placeholder). Anima: respiração, flutuação, piscar aleatório, balanço de
-cabelo e casaco, pulso de aura, partículas de energia e wisps de sombra.
+A arte (personagem, boss e portais) é **ilustração flat-art / anime gerada**,
+otimizada para WebP em `public/art/` — sem SVG desenhado na mão.
+`src/components/character/Hunter.tsx` exibe o splash ilustrado e o mantém
+"vivo": flutuação, breathing (escala), parallax, aura pulsante, wash de energia
+e embers subindo nos ranks altos.
 
-**Evolui com o rank:**
+**A arte do personagem troca com o rank (evolução visual):**
 
-| Tier | Ranks | Visual |
-|------|-------|--------|
-| fraco | E–D | postura baixa, aura mínima, olhos escuros |
-| firme | C–B | postura firme, olhos brilhando, aura ativa |
-| dominante | A–S | energia intensa, mãos energizadas, partículas |
-| transcendente | SS–SSS | terceiro olho, tendrils cósmicos, aura gigante |
+| Tier | Ranks | Arte | Visual |
+|------|-------|------|--------|
+| fraco | E–D | `hunter_weak` | postura baixa, aura mínima |
+| firme / dominante | C–S | `hunter_dominant` | pose imponente, aura ativa |
+| transcendente | SS–SSS | `hunter_transcendent` | monarca divino, aura gigante |
+
+O boss usa `boss_iron`; as masmorras usam `portal_gate` (tingido por matiz por
+masmorra). Para trocar a arte, basta substituir os arquivos em `public/art/`.
 
 ## Telas
 

@@ -1,86 +1,61 @@
 import { motion, type MotionValue, useMotionValue, useTransform } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { GlowButton, EnergyBar } from '../components/common/ui'
 import { useAudio } from '../hooks/useAudio'
 
-/** Colossal boss SVG — massive, layered, intimidating. */
+const base = import.meta.env.BASE_URL
+
+/** Colossal illustrated boss splash — intimidating, with pulsing energy. */
 function Colossus({ px, py }: { px?: MotionValue<number>; py?: MotionValue<number> }) {
   const fbX = useMotionValue(0)
   const fbY = useMotionValue(0)
   const x = useTransform(px ?? fbX, (v) => v * 14)
   const y = useTransform(py ?? fbY, (v) => v * 10)
-  const [blink, setBlink] = useState(1)
-  useEffect(() => {
-    const t = setInterval(() => {
-      setBlink(0.1)
-      setTimeout(() => setBlink(1), 90)
-    }, 3200)
-    return () => clearInterval(t)
-  }, [])
 
   return (
     <motion.div style={{ x, y }} className="absolute inset-0">
-      <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="h-full w-full">
-        <svg viewBox="0 0 400 460" className="h-full w-full" style={{ overflow: 'visible' }}>
-          <defs>
-            <linearGradient id="bbody" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#2a0f2e" />
-              <stop offset="1" stopColor="#06020a" />
-            </linearGradient>
-            <linearGradient id="bedge" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#ff5a7d" />
-              <stop offset="0.6" stopColor="#b98bff" />
-              <stop offset="1" stopColor="#3b82f6" />
-            </linearGradient>
-            <radialGradient id="beye" cx="0.5" cy="0.5" r="0.5">
-              <stop offset="0" stopColor="#fff" />
-              <stop offset="0.4" stopColor="#ff3b5e" />
-              <stop offset="1" stopColor="#6a00ff" />
-            </radialGradient>
-            <radialGradient id="baura" cx="0.5" cy="0.5" r="0.5">
-              <stop offset="0" stopColor="#6a00ff" stopOpacity="0.7" />
-              <stop offset="1" stopColor="#6a00ff" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-
-          <motion.ellipse cx="200" cy="230" rx="200" ry="220" fill="url(#baura)"
-            animate={{ opacity: [0.5, 0.95, 0.5], scale: [1, 1.08, 1] }} transition={{ duration: 3.5, repeat: Infinity }} style={{ transformOrigin: '200px 230px' }} />
-
-          {/* horns */}
-          <path d="M120 110 C70 60 60 20 90 8 C92 50 130 78 150 100 Z" fill="url(#bbody)" stroke="url(#bedge)" strokeWidth="2" />
-          <path d="M280 110 C330 60 340 20 310 8 C308 50 270 78 250 100 Z" fill="url(#bbody)" stroke="url(#bedge)" strokeWidth="2" />
-
-          {/* head */}
-          <path d="M200 60 C250 60 286 100 286 150 C286 196 250 224 200 224 C150 224 114 196 114 150 C114 100 150 60 200 60 Z"
-            fill="url(#bbody)" stroke="url(#bedge)" strokeWidth="2.4" />
-
-          {/* shoulders / body */}
-          <path d="M120 210 C150 188 250 188 280 210 L320 400 C326 440 300 456 280 460 L120 460 C100 456 74 440 80 400 Z"
-            fill="url(#bbody)" stroke="url(#bedge)" strokeWidth="2.4" />
-          {/* chest core */}
-          <motion.circle cx="200" cy="320" r="30" fill="url(#beye)"
-            animate={{ opacity: [0.6, 1, 0.6], scale: [0.9, 1.15, 0.9] }} transition={{ duration: 2, repeat: Infinity }} style={{ transformOrigin: '200px 320px' }} />
-
-          {/* spikes */}
-          {Array.from({ length: 7 }).map((_, i) => (
-            <path key={i} d={`M${110 + i * 30} 200 l 10 -34 l 10 34 z`} fill="url(#bbody)" stroke="url(#bedge)" strokeWidth="1.4" />
-          ))}
-
-          {/* eyes */}
-          <motion.g animate={{ scaleY: blink }} style={{ transformOrigin: '200px 150px' }}>
-            <ellipse cx="170" cy="150" rx="16" ry="9" fill="url(#beye)" />
-            <ellipse cx="230" cy="150" rx="16" ry="9" fill="url(#beye)" />
-          </motion.g>
-          <path d="M150 134 L188 146 M250 134 L212 146" stroke="#ff3b5e" strokeWidth="3" strokeLinecap="round" />
-          {/* maw */}
-          <path d="M168 188 L200 200 L232 188 L224 204 L200 212 L176 204 Z" fill="#1a0610" stroke="#ff3b5e" strokeWidth="1.5" />
-
-          {/* rising energy */}
-          {Array.from({ length: 12 }).map((_, i) => (
-            <motion.circle key={i} cx={110 + (i * 31) % 200} cy={440} r={2 + (i % 3)} fill={i % 2 ? '#ff5a7d' : '#8b3bff'}
-              animate={{ y: [0, -360], opacity: [0, 1, 0] }} transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.3, ease: 'easeOut' }} />
-          ))}
-        </svg>
+      {/* threatening aura */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 h-[80%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        style={{ background: 'radial-gradient(circle, rgba(106,0,255,.6), rgba(255,45,94,.22) 45%, transparent 70%)' }}
+        animate={{ opacity: [0.5, 0.95, 0.5], scale: [1, 1.08, 1] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="relative h-full w-full"
+        animate={{ y: [0, -8, 0], scale: [1, 1.015, 1] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <img
+          src={base + 'art/boss_iron.webp'}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full select-none"
+          style={{
+            objectFit: 'contain',
+            objectPosition: 'center top',
+            filter: 'drop-shadow(0 10px 40px rgba(255,45,94,.45))',
+            WebkitMaskImage: 'linear-gradient(to bottom, #000 88%, transparent)',
+            maskImage: 'linear-gradient(to bottom, #000 88%, transparent)',
+          }}
+        />
+        {/* ominous red pulse wash */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 mix-blend-screen"
+          style={{ background: 'radial-gradient(50% 40% at 50% 35%, rgba(255,45,94,.25), transparent 70%)' }}
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 2.2, repeat: Infinity }}
+        />
+        {/* rising embers */}
+        {Array.from({ length: 10 }).map((_, i) => (
+          <motion.span
+            key={i}
+            className="pointer-events-none absolute bottom-[12%] h-1.5 w-1.5 rounded-full"
+            style={{ left: `${15 + ((i * 31) % 70)}%`, background: i % 2 ? '#ff5a7d' : '#8b3bff', boxShadow: '0 0 8px #ff5a7d' }}
+            animate={{ y: [0, -260], opacity: [0, 1, 0] }}
+            transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.3, ease: 'easeOut' }}
+          />
+        ))}
       </motion.div>
     </motion.div>
   )

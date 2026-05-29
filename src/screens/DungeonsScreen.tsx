@@ -13,34 +13,37 @@ interface Dungeon {
   reward: string
   c1: string
   c2: string
+  hue: number
   locked?: boolean
 }
 
 const DUNGEONS: Dungeon[] = [
-  { id: 'ferro', name: 'Masmorra de Ferro', rank: 'C', lv: 'Lv. 18–24', tags: ['HORDA', '30 min'], reward: '◆ x2 · +1.2k XP', c1: '#9a6bff', c2: '#7a3bff' },
-  { id: 'goblin', name: 'Caverna dos Goblins', rank: 'D', lv: 'Lv. 12–16', tags: ['SWARM', '20 min'], reward: '⬡ 500 · +800 XP', c1: '#46e0ff', c2: '#2a6bff' },
-  { id: 'cristal', name: 'Portão de Cristal', rank: 'B', lv: 'Lv. 26–32', tags: ['ELITE', '45 min'], reward: '◆ x4 · +2.4k XP', c1: '#b98bff', c2: '#6a00ff' },
-  { id: 'almas', name: 'Torre das Almas', rank: 'A', lv: 'Lv. 40+', tags: ['BOSS', '60 min'], reward: 'BLOQUEADO', c1: '#ff5a7d', c2: '#7a0a86', locked: true },
+  { id: 'ferro', name: 'Masmorra de Ferro', rank: 'C', lv: 'Lv. 18–24', tags: ['HORDA', '30 min'], reward: '◆ x2 · +1.2k XP', c1: '#9a6bff', c2: '#7a3bff', hue: 0 },
+  { id: 'goblin', name: 'Caverna dos Goblins', rank: 'D', lv: 'Lv. 12–16', tags: ['SWARM', '20 min'], reward: '⬡ 500 · +800 XP', c1: '#46e0ff', c2: '#2a6bff', hue: 200 },
+  { id: 'cristal', name: 'Portão de Cristal', rank: 'B', lv: 'Lv. 26–32', tags: ['ELITE', '45 min'], reward: '◆ x4 · +2.4k XP', c1: '#b98bff', c2: '#6a00ff', hue: 60 },
+  { id: 'almas', name: 'Torre das Almas', rank: 'A', lv: 'Lv. 40+', tags: ['BOSS', '60 min'], reward: 'BLOQUEADO', c1: '#ff5a7d', c2: '#7a0a86', hue: 300, locked: true },
 ]
 
-function Portal({ c1, c2 }: { c1: string; c2: string }) {
+const base = import.meta.env.BASE_URL
+
+function Portal({ c1, hue }: { c1: string; hue: number }) {
   return (
-    <div
-      className="relative h-full w-full overflow-hidden rounded-xl"
-      style={{ background: `radial-gradient(60% 80% at 50% 55%, ${c2}, transparent 70%), linear-gradient(180deg, #1a0a3a, #06030f)` }}
-    >
-      <motion.div
-        className="absolute left-1/2 top-1/2 h-[80%] w-[60%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-        style={{ borderColor: c1, boxShadow: `0 0 18px ${c1}, inset 0 0 18px ${c1}` }}
-        animate={{ rotate: 360, scale: [0.9, 1, 0.9] }}
-        transition={{ rotate: { duration: 6, repeat: Infinity, ease: 'linear' }, scale: { duration: 3, repeat: Infinity } }}
+    <div className="relative h-full w-full overflow-hidden rounded-xl">
+      <img
+        src={base + 'art/portal_gate.webp'}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full select-none object-cover"
+        style={{ filter: `hue-rotate(${hue}deg) saturate(1.15)` }}
       />
+      {/* pulsing core glow */}
       <motion.div
-        className="absolute inset-0"
-        animate={{ opacity: [0.3, 0.7, 0.3] }}
-        transition={{ duration: 2.5, repeat: Infinity }}
-        style={{ background: `radial-gradient(40% 40% at 50% 50%, #fff8, transparent 60%)` }}
+        className="absolute left-1/2 top-[38%] h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
+        style={{ background: c1 }}
+        animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.8, 1.2, 0.8] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
       />
+      <span className="absolute inset-0 rounded-xl" style={{ boxShadow: `inset 0 0 16px ${c1}55` }} />
     </div>
   )
 }
@@ -87,7 +90,7 @@ export default function DungeonsScreen({ onEnter }: { onEnter: (id: string) => v
             className={`glass relative flex items-center gap-3 overflow-hidden rounded-2xl p-3 ${d.locked ? 'opacity-60 grayscale' : ''}`}
           >
             <div className="h-[78px] w-[78px] flex-shrink-0">
-              <Portal c1={d.c1} c2={d.c2} />
+              <Portal c1={d.c1} hue={d.hue} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="font-display text-sm font-bold tracking-wide">{d.name}</div>
