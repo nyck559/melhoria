@@ -2,12 +2,20 @@ import { motion, type MotionValue } from 'framer-motion'
 import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, AnimatedNumber, Holo, GlowButton } from '../components/common/ui'
-import Hunter from '../components/character/Hunter'
+import Hunter3D from '../components/character/Hunter3D'
 import { useGame, useLevelInfo, usePower, useCorruption, useEquippedAura, useCoins, useCrystals } from '../store/useGame'
 import { rankTier, ATTRS, CURRENCY } from '../data/game'
 import { EQUIPMENT } from '../data/equipment'
-import type { AttrKey, EquipSlot } from '../types'
+import type { AttrKey, EquipSlot, RankTier } from '../types'
 import { useAudio } from '../hooks/useAudio'
+
+const TAP_LINES: Record<RankTier, string[]> = {
+  fraco: ['Eu preciso ficar mais forte.', 'Não vou desistir.', 'Levante-se.'],
+  firme: ['Estou evoluindo.', 'Sinto o poder crescer.', 'Nada vai me parar.'],
+  dominante: ['Sombras, obedeçam.', 'Ninguém me detém.', 'Mais poder.'],
+  transcendente: ['Eu sou o Monarca.', 'Ajoelhe-se.', 'Eu comando as sombras.'],
+}
+const CORRUPT_LINES = ['A escuridão... está crescendo.', 'Preciso resistir.']
 
 const SLOT_POS: Record<EquipSlot, string> = {
   arma: 'left-3 top-6',
@@ -35,6 +43,16 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
   const [auraIdx, setAuraIdx] = useState(0)
   const accent = equippedAura ?? AURAS[auraIdx]
   const play = useAudio((s) => s.play)
+  const [line, setLine] = useState<string | null>(null)
+
+  const onCharTap = () => {
+    const pool = corruption > 65 && Math.random() < 0.5 ? CORRUPT_LINES : TAP_LINES[tier]
+    const l = pool[Math.floor(Math.random() * pool.length)]
+    setLine(l)
+    play('ui')
+    window.clearTimeout((onCharTap as any)._t)
+    ;(onCharTap as any)._t = window.setTimeout(() => setLine(null), 2000)
+  }
 
   const equippedCount = Object.keys(equipped).length
   const gearPower = EQUIPMENT.filter((e) => equipped[e.slot] === e.id).reduce((a, e) => a + e.power, 0)
@@ -59,10 +77,23 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
 
       <Holo className="relative mb-3 h-[46vh] min-h-[380px] overflow-hidden scanlines" glow>
         <div className="absolute inset-0" style={{ background: `radial-gradient(110% 80% at 50% 110%, ${accent}44, transparent 60%)` }} />
-        <Hunter tier={tier} accent={accent} px={px} py={py} corrupt={corruption > 65} interactive className="absolute inset-0" />
+        <Hunter3D tier={tier} accent={accent} corrupt={corruption > 65} onTap={onCharTap} className="absolute inset-0" />
+
+        {/* holographic speech bubble */}
+        {line && (
+          <motion.div
+            key={line}
+            initial={{ opacity: 0, y: 8, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="pointer-events-none absolute left-1/2 top-[8%] z-10 -translate-x-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5"
+            style={{ borderColor: `${accent}88`, background: 'rgba(10,6,20,.85)', boxShadow: `0 0 16px ${accent}66` }}
+          >
+            <span className="text-[12px] font-semibold text-cold">{line}</span>
+          </motion.div>
+        )}
 
         <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] tracking-[2px] text-violet-soft/50">
-          ✦ TOQUE · ARRASTE PARA INTERAGIR
+          ✦ TOQUE · ARRASTE PARA GIRAR
         </div>
 
         {EQUIPMENT.map((item) => {

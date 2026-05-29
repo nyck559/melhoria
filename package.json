@@ -10,9 +10,12 @@
     "apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "framer-motion": "^11.3.19",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "three": "^0.169.0",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
