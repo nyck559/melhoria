@@ -15,7 +15,10 @@ function clamp(n: number, lo = 0, hi = 999) {
 interface FullState extends GameState {
   lastXpGain: number
   lastLevelUp: number
+  lastStreakMilestone: { nome: string; days: number; ts: number } | null
 }
+
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100]
 
 export const useGame = create<FullState>()(
   persist(
@@ -37,6 +40,7 @@ export const useGame = create<FullState>()(
       lastPenalty: null,
       lastXpGain: 0,
       lastLevelUp: 0,
+      lastStreakMilestone: null,
 
       completeHabit: (id) => {
         const { habits, xp, attrs, coins, crystals } = get()
@@ -47,16 +51,17 @@ export const useGame = create<FullState>()(
         const afterLvl = levelFromXp(newXp).level
         const newAttrs = { ...attrs }
         h.atributos.forEach((a) => (newAttrs[a] = clamp(newAttrs[a] + (1 + Math.floor(h.xp / 120)))))
+        const newStreak = h.streak + 1
+        const milestone = STREAK_MILESTONES.includes(newStreak)
         set({
           xp: newXp,
           attrs: newAttrs,
           coins: coins + coinsForHabit(h),
           crystals: crystals + crystalsForHabit(h),
-          habits: habits.map((x) =>
-            x.id === id ? { ...x, concluidoHoje: true, streak: x.streak + 1 } : x,
-          ),
+          habits: habits.map((x) => (x.id === id ? { ...x, concluidoHoje: true, streak: newStreak } : x)),
           lastXpGain: h.xp,
           lastLevelUp: afterLvl > beforeLvl ? afterLvl : get().lastLevelUp,
+          lastStreakMilestone: milestone ? { nome: h.nome, days: newStreak, ts: Date.now() } : get().lastStreakMilestone,
         })
       },
 

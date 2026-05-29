@@ -37,16 +37,40 @@ function Portal({ c1, hue }: { c1: string; hue: number }) {
         alt=""
         draggable={false}
         className="absolute inset-0 h-full w-full select-none object-cover"
-        style={{ filter: `hue-rotate(${hue}deg) saturate(1.15)` }}
+        style={{ filter: `hue-rotate(${hue}deg) saturate(1.2)` }}
       />
-      {/* pulsing core glow */}
+      {/* swirling energy */}
       <motion.div
-        className="absolute left-1/2 top-[38%] h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
-        style={{ background: c1 }}
-        animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.8, 1.2, 0.8] }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute left-1/2 top-[40%] h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+        style={{ background: `conic-gradient(from 0deg, transparent, ${c1}aa, transparent 60%)` }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
       />
-      <span className="absolute inset-0 rounded-xl" style={{ boxShadow: `inset 0 0 16px ${c1}55` }} />
+      {/* rotating rune ring */}
+      <motion.div
+        className="absolute left-1/2 top-[40%] h-[60%] w-[60%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed"
+        style={{ borderColor: `${c1}cc`, boxShadow: `0 0 10px ${c1}` }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+      />
+      {/* pulsing core */}
+      <motion.div
+        className="absolute left-1/2 top-[40%] h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
+        style={{ background: c1 }}
+        animate={{ opacity: [0.5, 1, 0.5], scale: [0.7, 1.25, 0.7] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* rising particles */}
+      {[0, 1, 2, 3].map((i) => (
+        <motion.span
+          key={i}
+          className="absolute bottom-1 h-1 w-1 rounded-full"
+          style={{ left: `${22 + i * 18}%`, background: c1, boxShadow: `0 0 6px ${c1}` }}
+          animate={{ y: [0, -54], opacity: [0, 1, 0] }}
+          transition={{ duration: 1.8 + i * 0.4, repeat: Infinity, delay: i * 0.4, ease: 'easeOut' }}
+        />
+      ))}
+      <span className="absolute inset-0 rounded-xl" style={{ boxShadow: `inset 0 0 16px ${c1}66` }} />
     </div>
   )
 }

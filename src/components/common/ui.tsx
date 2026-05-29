@@ -1,5 +1,5 @@
-import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
-import { useEffect, type ReactNode } from 'react'
+import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useAudio } from '../../hooks/useAudio'
 
 /* ---------------- Holographic panel ---------------- */
@@ -87,6 +87,13 @@ export function GlowButton({
   type?: 'button' | 'submit'
 }) {
   const play = useAudio((s) => s.play)
+  const [flash, setFlash] = useState(false)
+  const flashColor: Record<string, string> = {
+    primary: 'rgba(176,130,255,.9)',
+    danger: 'rgba(255,120,150,.9)',
+    ghost: 'rgba(176,130,255,.7)',
+    gold: 'rgba(255,225,140,.95)',
+  }
   const styles: Record<string, string> = {
     primary: 'bg-gradient-to-br from-violet-neon to-violet-deep border-violet-glow shadow-glow',
     danger: 'bg-gradient-to-br from-corrupt to-[#7a0a2a] border-[#ff6a8a] shadow-glow-corrupt',
@@ -96,15 +103,31 @@ export function GlowButton({
   return (
     <motion.button
       type={type}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.9 }}
       whileHover={{ scale: 1.03 }}
+      transition={{ type: 'spring', stiffness: 600, damping: 18 }}
       onClick={() => {
         play(sound)
+        setFlash(true)
+        setTimeout(() => setFlash(false), 260)
+        try { navigator.vibrate?.(18) } catch { /* ignore */ }
         onClick?.()
       }}
       className={`font-display relative overflow-hidden rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-[2px] text-white ${styles[variant]} ${className}`}
     >
-      {children}
+      <span className="relative z-10">{children}</span>
+      <AnimatePresence>
+        {flash && (
+          <motion.span
+            className="pointer-events-none absolute inset-0 z-0"
+            initial={{ opacity: 0.85 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.26 }}
+            style={{ background: `radial-gradient(circle at 50% 50%, ${flashColor[variant]}, transparent 70%)` }}
+          />
+        )}
+      </AnimatePresence>
     </motion.button>
   )
 }

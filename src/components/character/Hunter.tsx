@@ -8,7 +8,6 @@ interface Props {
   py?: MotionValue<number>
   corrupt?: boolean
   className?: string
-  /** how the splash is framed inside its box */
   fit?: 'cover' | 'contain'
   objectPosition?: string
 }
@@ -22,16 +21,14 @@ const IMG: Record<RankTier, string> = {
   transcendente: 'art/hunter_transcendent.webp',
 }
 
-const INTENSITY: Record<RankTier, number> = {
-  fraco: 0.45,
-  firme: 0.85,
-  dominante: 1.1,
-  transcendente: 1.5,
-}
+const INTENSITY: Record<RankTier, number> = { fraco: 0.5, firme: 0.9, dominante: 1.2, transcendente: 1.6 }
+// "camera moves closer" as power rises
+const ZOOM: Record<RankTier, number> = { fraco: 1.0, firme: 1.07, dominante: 1.14, transcendente: 1.22 }
 
 /**
- * Illustrated (flat-art) character splash that stays "alive":
- * float + breathing scale, parallax sway, breathing aura glow, energy wash.
+ * Illustrated character splash kept ALIVE (character-zone animation only):
+ * drifting smoke, breathing aura, ground spotlight, float/breathe, energy wash,
+ * rising embers, and a tier-based zoom so the hero grows with rank.
  */
 export default function Hunter({
   tier,
@@ -45,61 +42,102 @@ export default function Hunter({
 }: Props) {
   const fbX = useMotionValue(0)
   const fbY = useMotionValue(0)
-  const swayX = useTransform(px ?? fbX, (v) => v * 16)
-  const swayY = useTransform(py ?? fbY, (v) => v * 10)
+  const swayX = useTransform(px ?? fbX, (v) => v * 18)
+  const swayY = useTransform(py ?? fbY, (v) => v * 12)
   const k = INTENSITY[tier]
   const glow = corrupt ? '#ff2d5e' : accent
 
   return (
     <motion.div className={className} style={{ x: swayX, y: swayY, willChange: 'transform' }}>
-      {/* aura glow behind the art */}
+      {/* breathing aura behind */}
       <motion.div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-        style={{ width: '78%', height: '70%', background: `radial-gradient(circle, ${glow}cc, transparent 65%)` }}
-        animate={{ opacity: [0.3 * k, 0.8 * k, 0.3 * k], scale: [1, 1.12, 1] }}
+        style={{ width: '86%', height: '78%', background: `radial-gradient(circle, ${glow}, transparent 62%)` }}
+        animate={{ opacity: [0.28 * k, 0.7 * k, 0.28 * k], scale: [1, 1.14, 1] }}
         transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* floating + breathing wrapper */}
+      {/* drifting shadow/smoke wisps (behind) */}
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={'w' + i}
+          className="absolute rounded-full blur-2xl"
+          style={{
+            width: 150 + i * 40,
+            height: 150 + i * 40,
+            left: `${18 + i * 26}%`,
+            top: `${24 + (i % 2) * 30}%`,
+            background: `radial-gradient(circle, ${i === 1 ? '#1f0d3a' : glow}55, transparent 70%)`,
+          }}
+          animate={{ x: [0, i % 2 ? 22 : -22, 0], y: [0, -16, 0], opacity: [0.25, 0.55, 0.25] }}
+          transition={{ duration: 9 + i * 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+
+      {/* float + breathe + tier zoom */}
       <motion.div
         className="relative h-full w-full"
-        animate={{ y: [0, -10, 0], scale: [1, 1.012, 1] }}
+        style={{ scale: ZOOM[tier], transformOrigin: 'center 75%' }}
+        animate={{ y: [0, -12, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <img
+        <motion.img
           src={base + IMG[tier]}
           alt=""
           draggable={false}
           className="absolute inset-0 h-full w-full select-none"
+          animate={{ scale: [1, 1.015, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             objectFit: fit,
             objectPosition,
-            filter: corrupt ? 'hue-rotate(285deg) saturate(1.4) brightness(.92)' : 'none',
-            WebkitMaskImage: 'linear-gradient(to bottom, #000 86%, transparent)',
-            maskImage: 'linear-gradient(to bottom, #000 86%, transparent)',
+            filter: corrupt
+              ? 'hue-rotate(285deg) saturate(1.4) brightness(.9) drop-shadow(0 8px 30px rgba(255,45,94,.5))'
+              : `drop-shadow(0 10px 34px ${glow}66)`,
+            WebkitMaskImage: 'linear-gradient(to bottom, #000 88%, transparent)',
+            maskImage: 'linear-gradient(to bottom, #000 88%, transparent)',
           }}
         />
 
-        {/* energy color wash (glow breathing) */}
+        {/* energy wash (glow breathing) */}
         <motion.div
           className="pointer-events-none absolute inset-0 mix-blend-screen"
-          style={{ background: `radial-gradient(60% 45% at 50% 38%, ${glow}26, transparent 72%)` }}
-          animate={{ opacity: [0.18 * k, 0.5 * k, 0.18 * k] }}
+          style={{ background: `radial-gradient(60% 45% at 50% 36%, ${glow}30, transparent 72%)` }}
+          animate={{ opacity: [0.16 * k, 0.5 * k, 0.16 * k] }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         />
 
-        {/* rising energy embers on stronger tiers */}
+        {/* rising foreground mist */}
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={'m' + i}
+            className="pointer-events-none absolute bottom-0 rounded-full blur-xl mix-blend-screen"
+            style={{ width: 120, height: 80, left: `${15 + i * 30}%`, background: `radial-gradient(circle, ${glow}40, transparent 70%)` }}
+            animate={{ y: [10, -70 - i * 20], opacity: [0, 0.5, 0] }}
+            transition={{ duration: 6 + i * 1.5, repeat: Infinity, delay: i * 1.4, ease: 'easeOut' }}
+          />
+        ))}
+
+        {/* rising embers (stronger tiers) */}
         {k > 0.8 &&
-          Array.from({ length: Math.round(k * 6) }).map((_, i) => (
+          Array.from({ length: Math.round(k * 7) }).map((_, i) => (
             <motion.span
               key={i}
-              className="pointer-events-none absolute bottom-[14%] h-1 w-1 rounded-full"
-              style={{ left: `${20 + ((i * 37) % 60)}%`, background: glow, boxShadow: `0 0 8px ${glow}` }}
-              animate={{ y: [0, -220 - (i % 3) * 40], opacity: [0, 0.9, 0] }}
-              transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.5, ease: 'easeOut' }}
+              className="pointer-events-none absolute bottom-[16%] rounded-full"
+              style={{ width: 2 + (i % 3), height: 2 + (i % 3), left: `${16 + ((i * 41) % 66)}%`, background: glow, boxShadow: `0 0 8px ${glow}` }}
+              animate={{ y: [0, -240 - (i % 3) * 50], opacity: [0, 0.95, 0] }}
+              transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.45, ease: 'easeOut' }}
             />
           ))}
       </motion.div>
+
+      {/* ground spotlight */}
+      <motion.div
+        className="pointer-events-none absolute bottom-[6%] left-1/2 -translate-x-1/2 rounded-[50%] blur-xl"
+        style={{ width: '62%', height: 26, background: `radial-gradient(ellipse, ${glow}aa, transparent 70%)` }}
+        animate={{ opacity: [0.4, 0.75, 0.4], scaleX: [1, 1.12, 1] }}
+        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+      />
     </motion.div>
   )
 }
