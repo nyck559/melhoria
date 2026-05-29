@@ -1,4 +1,4 @@
-import type { AttrKey, Category, Difficulty, Rank, RankTier, Rarity } from '../types'
+import type { AttrKey, Category, Difficulty, Habit, Rank, RankTier, Rarity } from '../types'
 
 /* ----------------------------- ATTRIBUTES ----------------------------- */
 export const ATTRS: Record<AttrKey, { label: string; icon: string; color: string }> = {
@@ -78,4 +78,33 @@ export function levelFromXp(totalXp: number): { level: number; into: number; nee
     level++
   }
   return { level, into: remaining, need: xpForLevel(level) }
+}
+
+/* ----------------------------- ECONOMY ----------------------------- */
+export const COIN_BASE = 1.2
+
+/** Coins granted by completing a habit. Tuned so a full day ≈ ~900 coins. */
+export function coinsForHabit(h: Habit): number {
+  return Math.round(h.xp * 0.5 * RARITY[h.raridade].xpMul * COIN_BASE)
+}
+
+/** Crystals (premium) occasionally drop from high-rarity habits. */
+export function crystalsForHabit(h: Habit): number {
+  if (h.raridade === 'lendario') return 1
+  if (h.raridade === 'epico' && Math.random() < 0.3) return 1
+  return 0
+}
+
+export const REWARD_CATEGORIES: Record<string, { label: string; icon: string; color: string }> = {
+  dinheiro: { label: 'Dinheiro', icon: '💵', color: '#43ffb0' },
+  doce: { label: 'Doce', icon: '🍫', color: '#ff8ab0' },
+  social: { label: 'Social', icon: '📱', color: '#46e0ff' },
+  lazer: { label: 'Lazer', icon: '🎮', color: '#8b3bff' },
+  descanso: { label: 'Descanso', icon: '🛌', color: '#b98bff' },
+  outro: { label: 'Outro', icon: '✦', color: '#ffcb57' },
+}
+
+export const CURRENCY = {
+  coins: { icon: '⬡', color: '#ffcb57', label: 'Moedas' },
+  crystals: { icon: '◆', color: '#b98bff', label: 'Cristais' },
 }

@@ -17,7 +17,7 @@ const base = import.meta.env.BASE_URL
 
 const IMG: Record<RankTier, string> = {
   fraco: 'art/hunter_weak.webp',
-  firme: 'art/hunter_dominant.webp',
+  firme: 'art/hunter_firm.webp',
   dominante: 'art/hunter_dominant.webp',
   transcendente: 'art/hunter_transcendent.webp',
 }

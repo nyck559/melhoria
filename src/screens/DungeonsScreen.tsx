@@ -2,7 +2,9 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, GlowButton } from '../components/common/ui'
+import RewardsShop from '../components/common/RewardsShop'
 import { useAudio } from '../hooks/useAudio'
+import type { BossReward } from '../types'
 
 interface Dungeon {
   id: string
@@ -14,14 +16,15 @@ interface Dungeon {
   c1: string
   c2: string
   hue: number
+  boss: BossReward
   locked?: boolean
 }
 
 const DUNGEONS: Dungeon[] = [
-  { id: 'ferro', name: 'Masmorra de Ferro', rank: 'C', lv: 'Lv. 18–24', tags: ['HORDA', '30 min'], reward: '◆ x2 · +1.2k XP', c1: '#9a6bff', c2: '#7a3bff', hue: 0 },
-  { id: 'goblin', name: 'Caverna dos Goblins', rank: 'D', lv: 'Lv. 12–16', tags: ['SWARM', '20 min'], reward: '⬡ 500 · +800 XP', c1: '#46e0ff', c2: '#2a6bff', hue: 200 },
-  { id: 'cristal', name: 'Portão de Cristal', rank: 'B', lv: 'Lv. 26–32', tags: ['ELITE', '45 min'], reward: '◆ x4 · +2.4k XP', c1: '#b98bff', c2: '#6a00ff', hue: 60 },
-  { id: 'almas', name: 'Torre das Almas', rank: 'A', lv: 'Lv. 40+', tags: ['BOSS', '60 min'], reward: 'BLOQUEADO', c1: '#ff5a7d', c2: '#7a0a86', hue: 300, locked: true },
+  { id: 'ferro', name: 'Masmorra de Ferro', rank: 'C', lv: 'Lv. 18–24', tags: ['HORDA', '30 min'], reward: '◆ x1 · ⬡ 300 · +1.2k XP', c1: '#9a6bff', c2: '#7a3bff', hue: 0, boss: { xp: 1200, coins: 300, crystals: 1, attrs: { forca: 2, vitalidade: 1 } } },
+  { id: 'goblin', name: 'Caverna dos Goblins', rank: 'D', lv: 'Lv. 12–16', tags: ['SWARM', '20 min'], reward: '⬡ 200 · +800 XP', c1: '#46e0ff', c2: '#2a6bff', hue: 200, boss: { xp: 800, coins: 200, crystals: 0, attrs: { forca: 1 } } },
+  { id: 'cristal', name: 'Portão de Cristal', rank: 'B', lv: 'Lv. 26–32', tags: ['ELITE', '45 min'], reward: '◆ x2 · ⬡ 500 · +2.4k XP', c1: '#b98bff', c2: '#6a00ff', hue: 60, boss: { xp: 2400, coins: 500, crystals: 2, attrs: { inteligencia: 2, foco: 1 } } },
+  { id: 'almas', name: 'Torre das Almas', rank: 'A', lv: 'Lv. 40+', tags: ['BOSS', '60 min'], reward: 'BLOQUEADO', c1: '#ff5a7d', c2: '#7a0a86', hue: 300, boss: { xp: 0, coins: 0, crystals: 0, attrs: {} }, locked: true },
 ]
 
 const base = import.meta.env.BASE_URL
@@ -48,7 +51,7 @@ function Portal({ c1, hue }: { c1: string; hue: number }) {
   )
 }
 
-export default function DungeonsScreen({ onEnter }: { onEnter: (id: string) => void }) {
+export default function DungeonsScreen({ onEnter }: { onEnter: (boss: BossReward, name: string) => void }) {
   const [seg, setSeg] = useState(0)
   const play = useAudio((s) => s.play)
 
@@ -78,7 +81,11 @@ export default function DungeonsScreen({ onEnter }: { onEnter: (id: string) => v
         ))}
       </div>
 
-      <SectionLabel>PORTAIS ATIVOS</SectionLabel>
+      {seg === 2 ? (
+        <RewardsShop />
+      ) : (
+      <>
+      <SectionLabel>{seg === 1 ? 'CHEFES' : 'PORTAIS ATIVOS'}</SectionLabel>
       <div className="flex flex-col gap-3">
         {DUNGEONS.map((d, i) => (
           <motion.div
@@ -111,8 +118,8 @@ export default function DungeonsScreen({ onEnter }: { onEnter: (id: string) => v
                 <span className="text-[10px] tracking-wide text-violet-soft/50">🔒 Lv. 40</span>
               ) : (
                 <>
-                  <GlowButton sound="challenge" onClick={() => onEnter(d.id)} className="!px-4 !py-2 text-[10px]">
-                    ENTRAR
+                  <GlowButton sound="challenge" onClick={() => onEnter(d.boss, d.name)} className="!px-4 !py-2 text-[10px]">
+                    {seg === 1 ? 'DESAFIAR' : 'ENTRAR'}
                   </GlowButton>
                   <span className="text-[9px] text-violet-soft/60">{d.reward}</span>
                 </>
@@ -121,6 +128,8 @@ export default function DungeonsScreen({ onEnter }: { onEnter: (id: string) => v
           </motion.div>
         ))}
       </div>
+      </>
+      )}
     </Screen>
   )
 }

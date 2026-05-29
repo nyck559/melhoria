@@ -2,6 +2,8 @@ import { motion, type MotionValue, useMotionValue, useTransform } from 'framer-m
 import { useState } from 'react'
 import { GlowButton, EnergyBar } from '../components/common/ui'
 import { useAudio } from '../hooks/useAudio'
+import { useGame } from '../store/useGame'
+import type { BossReward } from '../types'
 
 const base = import.meta.env.BASE_URL
 
@@ -65,13 +67,33 @@ export default function BossScreen({
   px,
   py,
   onBack,
+  reward,
+  name = 'Cavaleiro de Ferro',
 }: {
   px: MotionValue<number>
   py: MotionValue<number>
   onBack: () => void
+  reward: BossReward
+  name?: string
 }) {
   const play = useAudio((s) => s.play)
+  const defeatBoss = useGame((s) => s.defeatBoss)
   const [shake, setShake] = useState(false)
+  const [hp, setHp] = useState(100)
+  const [defeated, setDefeated] = useState(false)
+
+  const challenge = () => {
+    if (defeated) return
+    setShake(true)
+    play('challenge')
+    const nextHp = Math.max(0, hp - (40 + Math.floor(Math.random() * 25)))
+    setHp(nextHp)
+    setTimeout(() => setShake(false), 600)
+    if (nextHp <= 0) {
+      setDefeated(true)
+      setTimeout(() => { defeatBoss(reward); play('levelup') }, 400)
+    }
+  }
 
   return (
     <motion.div
@@ -100,8 +122,8 @@ export default function BossScreen({
         <button onClick={onBack} className="grid h-9 w-9 place-items-center rounded-xl border border-violet-glow/30 bg-black/40 text-2xl leading-none text-cold">
           ‹
         </button>
-        <span className="font-display rounded-full border border-corrupt/40 bg-corrupt/10 px-3 py-1.5 text-[10px] tracking-[3px] text-corrupt shadow-glow-corrupt">
-          CHEFE · ELITE
+        <span className="font-display max-w-[60%] truncate rounded-full border border-corrupt/40 bg-corrupt/10 px-3 py-1.5 text-[10px] tracking-[2px] text-corrupt shadow-glow-corrupt">
+          CHEFE · {name.toUpperCase()}
         </span>
       </div>
 
@@ -125,16 +147,16 @@ export default function BossScreen({
         <div className="mb-3 mt-3">
           <div className="font-num mb-1.5 flex justify-between text-[11px] font-bold tracking-wide text-cold">
             <span>HP</span>
-            <span>184.000 / 184.000</span>
+            <span>{Math.round((hp / 100) * 184000).toLocaleString('pt-BR')} / 184.000</span>
           </div>
-          <EnergyBar value={100} c1="#ff2d5e" c2="#ff7a3d" height={12} />
+          <EnergyBar key={hp} value={hp} c1="#ff2d5e" c2="#ff7a3d" height={12} />
         </div>
 
         <div className="mb-4 grid grid-cols-3 gap-2.5">
           {[
-            { k: 'PODER REC.', v: '1.800' },
-            { k: 'XP', v: '+4.200' },
-            { k: 'RECOMPENSA', v: '◆ x3' },
+            { k: 'XP', v: `+${reward.xp.toLocaleString('pt-BR')}` },
+            { k: 'MOEDAS', v: `⬡ ${reward.coins}` },
+            { k: 'CRISTAIS', v: `◆ ${reward.crystals}` },
           ].map((b) => (
             <div key={b.k} className="glass rounded-xl py-2.5 text-center">
               <div className="text-[8px] tracking-wide text-violet-soft/60">{b.k}</div>
@@ -143,20 +165,23 @@ export default function BossScreen({
           ))}
         </div>
 
-        <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
-          <GlowButton
-            variant="danger"
-            sound="challenge"
-            onClick={() => {
-              setShake(true)
-              play('challenge')
-              setTimeout(() => setShake(false), 600)
-            }}
-            className="w-full !py-4 text-base"
+        {defeated ? (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="rounded-xl border border-emerald/50 bg-emerald/10 py-4 text-center"
+            style={{ boxShadow: '0 0 22px rgba(67,255,176,.4)' }}
           >
-            DESAFIAR ⚔ -2
-          </GlowButton>
-        </motion.div>
+            <div className="font-display text-glow-cyan text-lg font-black text-emerald">VITÓRIA</div>
+            <div className="mt-1 text-[11px] text-cold/80">Recompensas coletadas · toque ‹ para voltar</div>
+          </motion.div>
+        ) : (
+          <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
+            <GlowButton variant="danger" sound="challenge" onClick={challenge} className="w-full !py-4 text-base">
+              DESAFIAR ⚔ {hp < 100 ? `· HP ${hp}%` : '-2'}
+            </GlowButton>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   )

@@ -72,6 +72,32 @@ masmorra). Para trocar a arte, basta substituir os arquivos em `public/art/`.
 - **Rank** — badge gigante com anéis, escada E→SSS, progresso animado.
 - **Perfil** — card do caçador, toggle de áudio, resetar dia.
 
+## Economia & Loja de recompensas reais
+
+Concluir missões concede **moedas** (⬡) e, em raridades altas, **cristais** (◆).
+Essas moedas são gastas numa **Loja de recompensas da vida real** que o próprio
+usuário define (CRUD): "Rede social 30 min", "Doce", "R$20 para gastar", etc.
+
+- Fórmula: `coins = round(xp * 0.5 * raridade.xpMul * 1.2)` (≈900 moedas/dia
+  cheio). Ajuste global em `COIN_BASE` (`src/data/game.ts`).
+- Loja: abre pelo **chip de moeda no topo** ou pela aba **LOJA** das Masmorras.
+  Resgatar deduz a moeda, respeita `limitePorDia` e entra no **histórico**.
+- Recompensas têm categoria (dinheiro/doce/social/lazer/descanso/outro), moeda
+  (coins/crystals), custo e limite diário — tudo editável (`RewardEditor`).
+- Bosses concedem XP + atributos + moedas/cristais reais ao serem derrotados.
+
+## Equipamentos
+
+`src/data/equipment.ts` define um catálogo (1 item por slot). Equipar um item
+soma **poder** e **atributos** (e alguns trocam a **aura** do personagem). O
+`PODER TOTAL` e a aura refletem o que está equipado.
+
+## Reset diário
+
+`checkDailyReset()` zera as missões concluídas e os resgates do dia quando a data
+muda (roda no rehydrate do `persist` e num intervalo no `App`). Streak de missões
+não concluídas no dia anterior é reduzida.
+
 ## Sistema de XP / evolução
 
 Concluir um hábito concede XP (escalado por raridade), sobe os **atributos

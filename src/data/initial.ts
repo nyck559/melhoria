@@ -1,4 +1,4 @@
-import type { Habit, Sin } from '../types'
+import type { Habit, Reward, Sin } from '../types'
 
 export const INITIAL_HABITS: Habit[] = [
   {
@@ -112,6 +112,15 @@ export const INITIAL_SINS: Sin[] = [
   { id: 's-ira',      nome: 'Ira',      icone: '⚡', descricao: 'Frustração descontrolada', nivel: 4, corrupcao: 70 },
   { id: 's-inveja',   nome: 'Inveja',   icone: '🌀', descricao: 'Comparação constante', nivel: 1, corrupcao: 12 },
   { id: 's-orgulho',  nome: 'Orgulho',  icone: '👁', descricao: 'Ego acima do progresso', nivel: 2, corrupcao: 28 },
+]
+
+export const INITIAL_REWARDS: Reward[] = [
+  { id: 'r-social', nome: 'Rede social 30 min', descricao: 'Scroll sem culpa', icone: '📱', custo: 120, moeda: 'coins', categoria: 'social', limitePorDia: 2, resgatadosHoje: 0 },
+  { id: 'r-doce', nome: 'Doce', descricao: 'Uma sobremesa', icone: '🍫', custo: 80, moeda: 'coins', categoria: 'doce', limitePorDia: 1, resgatadosHoje: 0 },
+  { id: 'r-serie', nome: '1 episódio de série', descricao: 'Um episódio', icone: '📺', custo: 200, moeda: 'coins', categoria: 'lazer', resgatadosHoje: 0 },
+  { id: 'r-jogo', nome: '1h de videogame', descricao: 'Sessão de jogo', icone: '🎮', custo: 260, moeda: 'coins', categoria: 'lazer', limitePorDia: 1, resgatadosHoje: 0 },
+  { id: 'r-dinheiro', nome: 'R$20 para gastar', descricao: 'Liberar R$20', icone: '💵', custo: 900, moeda: 'coins', categoria: 'dinheiro', resgatadosHoje: 0 },
+  { id: 'r-folga', nome: 'Manhã de descanso', descricao: 'Dormir até tarde', icone: '🛌', custo: 3, moeda: 'crystals', categoria: 'descanso', limitePorDia: 1, resgatadosHoje: 0 },
 ]
 
 export const INITIAL_ATTRS = {
