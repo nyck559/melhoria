@@ -59,7 +59,11 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
 
       <Holo className="relative mb-3 h-[46vh] min-h-[380px] overflow-hidden scanlines" glow>
         <div className="absolute inset-0" style={{ background: `radial-gradient(110% 80% at 50% 110%, ${accent}44, transparent 60%)` }} />
-        <Hunter tier={tier} accent={accent} px={px} py={py} corrupt={corruption > 65} className="absolute inset-0" />
+        <Hunter tier={tier} accent={accent} px={px} py={py} corrupt={corruption > 65} interactive className="absolute inset-0" />
+
+        <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] tracking-[2px] text-violet-soft/50">
+          ✦ TOQUE · ARRASTE PARA INTERAGIR
+        </div>
 
         {EQUIPMENT.map((item) => {
           const isOn = equipped[item.slot] === item.id

@@ -25,7 +25,7 @@ export default function StatusScreen({ px, py }: { px: MotionValue<number>; py: 
           className="absolute inset-x-0 bottom-0 h-2/3"
           style={{ background: `radial-gradient(120% 90% at 50% 120%, ${rd.color}55, transparent 60%)` }}
         />
-        <Hunter tier={tier} accent={rd.color} px={px} py={py} corrupt={corruption > 65} className="absolute inset-0" />
+        <Hunter tier={tier} accent={rd.color} px={px} py={py} corrupt={corruption > 65} interactive className="absolute inset-0" />
 
         {/* rank badge */}
         <div className="absolute right-3 top-3">
