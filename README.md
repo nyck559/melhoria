@@ -1,48 +1,96 @@
-# SISTEMA — Solo Leveling Mobile UI
+# SISTEMA — Solo Leveling Life System
 
-Interface de aplicativo mobile inspirada em **Solo Leveling**, com estética
-premium, sombria e neon roxa. Construída com HTML, CSS e JavaScript puros — sem
-build, sem dependências. Basta abrir no navegador.
+Um **sistema de evolução pessoal gamificado** com interface cinematográfica
+estilo anime AAA (Solo Leveling / Honkai Star Rail / Wuthering Waves).
+Não é um app de hábitos comum — é uma experiência onde **você evolui como um
+personagem**.
 
-## Como rodar
+Construído com **React + TypeScript + Vite + Tailwind + Framer Motion** e
+**Web Audio API**. Tudo persiste em `localStorage`.
+
+## Rodar
 
 ```bash
-# qualquer servidor estático, por exemplo:
-python3 -m http.server 8080
-# depois abra http://localhost:8080
+npm install
+npm run dev      # desenvolvimento
+npm run build    # build de produção
+npm run preview  # servir o build
 ```
 
-Ou simplesmente abra o arquivo `index.html` direto no navegador.
+## Arquitetura visual (por tela)
+
+Cada tela é montada em camadas full-screen:
+
+```
+ROOT
+├── gradiente animado + grade em perspectiva  (parallax)
+├── blooms de energia ambiente
+├── névoa/fumaça rastejante
+├── partículas (canvas, lighter blend)
+├── camada do personagem (SVG animado + parallax)
+├── aura + wisps de sombra
+├── HUD holográfico (frames, scanlines, shimmer)
+├── overlay de UI
+└── bottom navigation premium
+```
+
+## Personagem
+
+`src/components/character/Hunter.tsx` — SVG anime **layered e animado** (sem
+PNG/placeholder). Anima: respiração, flutuação, piscar aleatório, balanço de
+cabelo e casaco, pulso de aura, partículas de energia e wisps de sombra.
+
+**Evolui com o rank:**
+
+| Tier | Ranks | Visual |
+|------|-------|--------|
+| fraco | E–D | postura baixa, aura mínima, olhos escuros |
+| firme | C–B | postura firme, olhos brilhando, aura ativa |
+| dominante | A–S | energia intensa, mãos energizadas, partículas |
+| transcendente | SS–SSS | terceiro olho, tendrils cósmicos, aura gigante |
 
 ## Telas
 
-Use a **navegação inferior** (STATUS · QUESTS · CAÇADOR · MASMORRAS · PECADOS)
-e os atalhos abaixo do dispositivo (Detalhe · Boss · Rank · Perfil). Há também
-um botão **GALERIA** no topo que mostra todas as telas lado a lado.
+- **Status** — personagem ~70% da tela, rank badge com anéis rotativos, barra de
+  EXP, 7 atributos holográficos (força, vitalidade, inteligência, disciplina,
+  foco, energia, carisma) com números animados.
+- **Quests** — hábitos cinematográficos com glow por raridade, borda animada,
+  checkmark animado, XP popup. **CRUD completo de hábitos** (criar/editar/excluir,
+  categoria, dificuldade, raridade, XP, atributos afetados, horário, repetição,
+  recompensa, penalidade).
+- **Caçador** — inventário RPG: slots de equipamento ao redor do corpo, aura
+  configurável que muda os FX, poder total animado.
+- **Masmorras** — portais animados, dificuldade, recompensas, botão ENTRAR.
+- **Boss Fight** — boss colossal SVG, energia roxa intensa, HP enorme, screen
+  shake e botão DESAFIAR.
+- **Pecados** — tema de corrupção (vermelho). Sliders por pecado alimentam a
+  **corrupção total**, que escurece a tela e a aura do personagem.
+- **Rank** — badge gigante com anéis, escada E→SSS, progresso animado.
+- **Perfil** — card do caçador, toggle de áudio, resetar dia.
 
-1. **Status** — personagem com aura roxa, rank gigante, barra de EXP e atributos
-   (Força, Velocidade, Percepção, Mana, Resistência, Inteligência).
-2. **Quests Diárias** — cards glassmorphism com barras de progresso, recompensas
-   em cristal e botão de resgate luminoso.
-3. **Caçador / Equipamentos** — personagem central com slots de equipamento ao
-   redor do corpo, poder total e abas de habilidades.
-4. **Masmorras** — lista de portais neon com dificuldade, recompensas e botões
-   "ENTRAR" (uma masmorra bloqueada).
-5. **Masmorra · Detalhe** — portal cinematográfico, inimigos, boss e recompensas.
-6. **Boss Fight** — chefe colossal, HP enorme e botão "DESAFIAR".
-7. **Pecados** — fraquezas internas (Preguiça, Gula, Luxúria, Ira, Inveja).
-8. **Rank Global** — escada de ranks E · D · C · B · A · S · SS holográfica.
-9. **Perfil / Configurações** — card do caçador e lista de ajustes.
+## Sistema de XP / evolução
 
-## Design
+Concluir um hábito concede XP (escalado por raridade), sobe os **atributos
+afetados**, e o XP total define o **nível** e o **rank** — que por sua vez muda a
+aparência do personagem. Curva de XP em `src/data/game.ts`.
 
-- Paleta: preto absoluto `#050505`, roxo neon `#6A00FF`, azul elétrico `#3B82F6`,
-  branco frio.
-- Glassmorphism, glows neon, partículas animadas, fumaça e grade em perspectiva.
-- Tipografia futurista (Orbitron / Chakra Petch / Rajdhani).
+## Áudio (opcional)
 
-## Arquivos
+`src/hooks/useAudio.ts` — drone ambiente dark + SFX (UI, XP, level up, desafio,
+corrupção) sintetizados via Web Audio API. Ative no ícone 🔊 (topo) ou no Perfil.
 
-- `index.html` — estrutura de todas as telas + shell do dispositivo.
-- `styles.css` — sistema de design completo.
-- `app.js` — navegação, dados, arte SVG dos personagens, partículas e galeria.
+## Estrutura
+
+```
+src/
+├── data/        game.ts (ranks, atributos, XP), initial.ts (seed)
+├── store/       useGame.ts (Zustand + persist)
+├── hooks/       useParallax.ts, useAudio.ts
+├── components/
+│   ├── atmosphere/  Atmosphere.tsx, Particles.tsx
+│   ├── character/   Hunter.tsx
+│   ├── hud/         RankBadge.tsx, FxOverlay.tsx
+│   ├── nav/         BottomNav.tsx
+│   └── common/      ui.tsx, Screen.tsx, HabitEditor.tsx
+└── screens/     Status, Quests, Hunter, Dungeons, Boss, Sins, Rank, Profile
+```

@@ -1,0 +1,100 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
+import { useParallax } from './hooks/useParallax'
+import { useAudio } from './hooks/useAudio'
+import { useLevelInfo, useCorruption } from './store/useGame'
+import { RANK_DATA, rankForLevel } from './data/game'
+import Atmosphere from './components/atmosphere/Atmosphere'
+import BottomNav, { type ScreenKey } from './components/nav/BottomNav'
+import FxOverlay from './components/hud/FxOverlay'
+import StatusScreen from './screens/StatusScreen'
+import QuestsScreen from './screens/QuestsScreen'
+import HunterScreen from './screens/HunterScreen'
+import DungeonsScreen from './screens/DungeonsScreen'
+import BossScreen from './screens/BossScreen'
+import SinsScreen from './screens/SinsScreen'
+import RankScreen from './screens/RankScreen'
+import ProfileScreen from './screens/ProfileScreen'
+
+type View = ScreenKey | 'boss' | 'rank' | 'profile'
+
+export default function App() {
+  const { x: px, y: py } = useParallax()
+  const [view, setView] = useState<View>('status')
+  const navKey: ScreenKey = (['status', 'quests', 'hunter', 'dungeons', 'sins'] as ScreenKey[]).includes(view as ScreenKey)
+    ? (view as ScreenKey)
+    : 'status'
+
+  const { level } = useLevelInfo()
+  const corruption = useCorruption()
+  const rank = rankForLevel(level)
+  const rd = RANK_DATA[rank]
+  const corrupt = corruption > 65
+  const accent = corrupt ? '#ff2d5e' : rd.color
+  const audio = useAudio()
+
+  return (
+    <div className="grid h-full w-full place-items-center bg-void">
+      {/* device column */}
+      <div
+        className="relative h-full w-full max-w-[460px] overflow-hidden bg-void md:my-3 md:h-[min(900px,96vh)] md:rounded-[40px] md:border md:border-violet-glow/20"
+        style={{ boxShadow: '0 0 60px rgba(106,0,255,.25)' }}
+      >
+        {/* GLOBAL ATMOSPHERE */}
+        <Atmosphere px={px} py={py} accent={accent} corrupt={corrupt} hue={corrupt ? 345 : 268} />
+
+        {/* corruption vignette */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-40"
+          animate={{ boxShadow: `inset 0 0 ${corruption * 1.8}px rgba(255,45,94,${corruption / 220})` }}
+          transition={{ duration: 0.6 }}
+        />
+
+        {/* top mini HUD */}
+        <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 pt-3">
+          <button
+            onClick={() => setView('rank')}
+            className="glass flex items-center gap-2 rounded-full px-3 py-1.5"
+            style={{ borderColor: `${rd.color}66` }}
+          >
+            <span className="font-display text-sm font-black" style={{ color: rd.color, textShadow: `0 0 12px ${rd.color}` }}>
+              {rank}
+            </span>
+            <span className="text-[10px] tracking-wide text-cold/70">RANK</span>
+          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => audio.toggle()}
+              className="glass grid h-8 w-8 place-items-center rounded-full text-sm"
+              style={{ color: audio.enabled ? '#46e0ff' : '#565273' }}
+              title="Áudio ambiente"
+            >
+              {audio.enabled ? '🔊' : '🔈'}
+            </button>
+            <button onClick={() => setView('profile')} className="glass grid h-8 w-8 place-items-center rounded-full text-sm">
+              ⚙
+            </button>
+          </div>
+        </div>
+
+        {/* SCREENS */}
+        <AnimatePresence mode="wait">
+          {view === 'status' && <StatusScreen key="status" px={px} py={py} />}
+          {view === 'quests' && <QuestsScreen key="quests" />}
+          {view === 'hunter' && <HunterScreen key="hunter" px={px} py={py} />}
+          {view === 'dungeons' && <DungeonsScreen key="dungeons" onEnter={() => setView('boss')} />}
+          {view === 'boss' && <BossScreen key="boss" px={px} py={py} onBack={() => setView('dungeons')} />}
+          {view === 'sins' && <SinsScreen key="sins" />}
+          {view === 'rank' && <RankScreen key="rank" />}
+          {view === 'profile' && <ProfileScreen key="profile" onNav={(k) => setView(k)} />}
+        </AnimatePresence>
+
+        {/* cinematic FX */}
+        <FxOverlay />
+
+        {/* BOTTOM NAV */}
+        <BottomNav active={navKey} onChange={(k) => setView(k)} accent={accent} />
+      </div>
+    </div>
+  )
+}
