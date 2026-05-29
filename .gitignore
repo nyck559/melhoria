@@ -6,3 +6,14 @@ dist-ssr
 .vite
 npm-debug.log*
 tsconfig.tsbuildinfo
+
+# Android / Capacitor
+*.apk
+android/local.properties
+android/.gradle
+android/build
+android/app/build
+android/captures
+android/app/src/main/assets/public
+android/app/src/main/assets/capacitor.config.json
+.gradle

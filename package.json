@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug --no-daemon"
   },
   "dependencies": {
     "framer-motion": "^11.3.19",
@@ -15,6 +16,9 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
