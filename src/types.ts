@@ -87,6 +87,8 @@ export interface EquipItem {
   power: number
   attrBonus: Partial<Record<AttrKey, number>>
   aura?: string
+  custo: number
+  moeda: Currency
 }
 
 export interface BossReward {
@@ -115,6 +117,7 @@ export interface GameState {
   rewards: Reward[]
   redemptions: Redemption[]
   equipped: Partial<Record<EquipSlot, string>>
+  ownedEquip: string[]
   lastResetDate: string // 'YYYY-MM-DD'
   reminders: boolean
   lastPenalty: PenaltyReport | null
@@ -134,6 +137,7 @@ export interface GameState {
   removeReward: (id: string) => void
   defeatBoss: (reward: BossReward) => void
   equipItem: (slot: EquipSlot, itemId: string | null) => void
+  buyEquip: (itemId: string) => void
   checkDailyReset: () => void
   toggleReminders: () => void
   clearPenalty: () => void

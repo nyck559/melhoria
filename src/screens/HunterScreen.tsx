@@ -1,12 +1,12 @@
 import { motion, type MotionValue } from 'framer-motion'
 import { useState } from 'react'
 import Screen from '../components/common/Screen'
-import { ScreenTitle, SectionLabel, AnimatedNumber, Holo } from '../components/common/ui'
+import { ScreenTitle, SectionLabel, AnimatedNumber, Holo, GlowButton } from '../components/common/ui'
 import Hunter from '../components/character/Hunter'
 import { useGame, useLevelInfo, usePower, useCorruption, useEquippedAura, useCoins, useCrystals } from '../store/useGame'
-import { rankTier } from '../data/game'
-import { EQUIPMENT, itemForSlot } from '../data/equipment'
-import type { EquipSlot } from '../types'
+import { rankTier, ATTRS, CURRENCY } from '../data/game'
+import { EQUIPMENT } from '../data/equipment'
+import type { AttrKey, EquipSlot } from '../types'
 import { useAudio } from '../hooks/useAudio'
 
 const SLOT_POS: Record<EquipSlot, string> = {
@@ -26,7 +26,9 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
   const corruption = useCorruption()
   const tier = rankTier(level)
   const equipped = useGame((s) => s.equipped)
+  const ownedEquip = useGame((s) => s.ownedEquip)
   const equipItem = useGame((s) => s.equipItem)
+  const buyEquip = useGame((s) => s.buyEquip)
   const equippedAura = useEquippedAura()
   const coins = useCoins()
   const crystals = useCrystals()
@@ -36,12 +38,13 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
 
   const equippedCount = Object.keys(equipped).length
   const gearPower = EQUIPMENT.filter((e) => equipped[e.slot] === e.id).reduce((a, e) => a + e.power, 0)
+  const balance = (m: 'coins' | 'crystals') => (m === 'coins' ? coins : crystals)
 
   return (
     <Screen>
       <ScreenTitle
         title="CAÇADOR"
-        sub="Equipamento · Loadout"
+        sub="Equipamento · Artefatos"
         right={
           <button onClick={onOpenLoja} className="flex gap-1.5" title="Abrir Loja">
             <span className="font-num rounded-full border border-violet-glow/30 bg-black/30 px-2.5 py-1 text-[11px] font-bold text-violet-soft">
@@ -54,35 +57,29 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
         }
       />
 
-      <Holo className="relative mb-3 h-[360px] overflow-hidden scanlines" glow>
+      <Holo className="relative mb-3 h-[340px] overflow-hidden scanlines" glow>
         <div className="absolute inset-0" style={{ background: `radial-gradient(110% 80% at 50% 110%, ${accent}44, transparent 60%)` }} />
         <Hunter tier={tier} accent={accent} px={px} py={py} corrupt={corruption > 65} className="absolute inset-0" />
 
         {EQUIPMENT.map((item) => {
           const isOn = equipped[item.slot] === item.id
+          const owned = ownedEquip.includes(item.id)
           return (
-            <motion.button
+            <button
               key={item.id}
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => { equipItem(item.slot, isOn ? null : item.id); play('ui') }}
-              className={`glass absolute grid h-14 w-14 place-items-center rounded-2xl text-2xl ${SLOT_POS[item.slot]}`}
+              onClick={() => { if (owned) { equipItem(item.slot, isOn ? null : item.id); play('ui') } }}
+              className={`glass absolute grid h-13 w-13 place-items-center rounded-2xl text-2xl ${SLOT_POS[item.slot]}`}
               style={{
-                opacity: isOn ? 1 : 0.5,
+                width: 52, height: 52,
+                opacity: isOn ? 1 : owned ? 0.7 : 0.4,
                 filter: isOn ? 'none' : 'grayscale(.6)',
-                boxShadow: isOn ? `0 0 20px ${accent}aa` : `0 0 8px ${accent}33`,
+                boxShadow: isOn ? `0 0 20px ${accent}aa` : 'none',
                 borderColor: isOn ? accent : 'rgba(139,92,255,.25)',
               }}
-              title={`${item.nome} · +${item.power} poder`}
+              title={owned ? item.nome : `${item.nome} (bloqueado)`}
             >
-              {item.icone}
-              <span
-                className="font-display absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-md text-[8px] font-black text-white"
-                style={{ background: `linear-gradient(135deg, ${accent}, #3b82f6)`, boxShadow: `0 0 8px ${accent}` }}
-              >
-                {item.tier}
-              </span>
-            </motion.button>
+              {owned ? item.icone : '🔒'}
+            </button>
           )
         })}
       </Holo>
@@ -94,6 +91,55 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
         <div className="text-[11px] tracking-wide text-emerald">
           {equippedCount}/6 equipados {gearPower > 0 && `· ▲ +${gearPower} do equipamento`}
         </div>
+      </div>
+
+      {/* ARTIFACT SHOP — buy then equip */}
+      <SectionLabel right={<span className="text-[9px] text-violet-soft/50">compre com moedas</span>}>⬡ ARTEFATOS</SectionLabel>
+      <div className="flex flex-col gap-2.5">
+        {EQUIPMENT.map((item) => {
+          const owned = ownedEquip.includes(item.id)
+          const isOn = equipped[item.slot] === item.id
+          const cur = CURRENCY[item.moeda]
+          const poor = balance(item.moeda) < item.custo
+          return (
+            <div key={item.id} className="glass flex items-center gap-3 rounded-2xl p-3" style={{ borderColor: isOn ? `${accent}66` : undefined }}>
+              <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl text-xl" style={{ background: 'rgba(106,0,255,.14)', border: `1px solid ${isOn ? accent : 'rgba(139,92,255,.3)'}` }}>
+                {owned ? item.icone : '🔒'}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-semibold">{item.nome}</span>
+                  <span className="font-display rounded px-1 text-[8px] font-black text-white" style={{ background: `linear-gradient(135deg, ${accent}, #3b82f6)` }}>{item.tier}</span>
+                </div>
+                <div className="mt-0.5 flex flex-wrap gap-1.5 text-[10px] text-violet-soft/70">
+                  <span className="text-emerald">▲ {item.power} poder</span>
+                  {Object.entries(item.attrBonus).map(([k, v]) => (
+                    <span key={k} style={{ color: ATTRS[k as AttrKey].color }}>+{v} {ATTRS[k as AttrKey].label}</span>
+                  ))}
+                </div>
+              </div>
+              {!owned ? (
+                <GlowButton
+                  variant={poor ? 'ghost' : 'gold'}
+                  sound="xp"
+                  onClick={() => { if (!poor) { buyEquip(item.id); play('levelup') } }}
+                  className={`!px-3 !py-2 text-[10px] ${poor ? 'opacity-50' : ''}`}
+                >
+                  {poor ? 'SEM SALDO' : `COMPRAR ${cur.icon}${item.custo}`}
+                </GlowButton>
+              ) : (
+                <GlowButton
+                  variant={isOn ? 'ghost' : 'primary'}
+                  sound="ui"
+                  onClick={() => { equipItem(item.slot, isOn ? null : item.id); play('ui') }}
+                  className="!px-3 !py-2 text-[10px]"
+                >
+                  {isOn ? 'EQUIPADO ✓' : 'EQUIPAR'}
+                </GlowButton>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* aura selector */}
@@ -118,24 +164,8 @@ export default function HunterScreen({ px, py, onOpenLoja }: { px: MotionValue<n
         ))}
       </div>
 
-      <SectionLabel>SISTEMA</SectionLabel>
-      <div className="grid grid-cols-4 gap-2.5">
-        {[
-          { ico: '⚡', label: 'HABILIDADES' },
-          { ico: '✦', label: 'AURA' },
-          { ico: '🎁', label: 'LOJA', action: onOpenLoja },
-          { ico: '❒', label: 'CÓDEX' },
-        ].map((t) => (
-          <motion.button
-            key={t.label}
-            whileHover={{ scale: 1.06, boxShadow: `0 0 18px ${accent}66` }}
-            onClick={() => (t.action ? t.action() : play('ui'))}
-            className="glass flex flex-col items-center gap-1.5 rounded-2xl py-3"
-          >
-            <span className="text-xl" style={{ color: accent, filter: `drop-shadow(0 0 8px ${accent})` }}>{t.ico}</span>
-            <span className="text-[8px] font-semibold tracking-wide text-violet-soft/60">{t.label}</span>
-          </motion.button>
-        ))}
+      <div className="mt-3">
+        <GlowButton variant="gold" onClick={onOpenLoja} className="w-full">🎁 ABRIR LOJA DE RECOMPENSAS</GlowButton>
       </div>
     </Screen>
   )

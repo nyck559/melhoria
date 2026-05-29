@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel } from '../components/common/ui'
 import { useGame, useLevelInfo, usePower } from '../store/useGame'
@@ -14,22 +15,28 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
   const reminders = useGame((s) => s.reminders)
   const toggleReminders = useGame((s) => s.toggleReminders)
   const audio = useAudio()
+  const [toast, setToast] = useState<string | null>(null)
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast((t) => (t === msg ? null : t)), 1800)
+  }
 
   const onToggleReminders = () => {
     if (!reminders && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {})
     }
     toggleReminders()
+    flash(reminders ? 'Lembretes desligados' : 'Lembretes ligados ⏰')
   }
 
   const rows = [
-    { ico: '👤', name: 'Personalização', sub: 'Avatar, título, aura', arrow: true },
     { ico: '🏆', name: 'Ranking Global', sub: `Você é RANK ${rank}`, action: () => onNav('rank') },
     { ico: '⏰', name: 'Lembretes', sub: 'Alertas das missões no horário', toggle: true, on: reminders, action: onToggleReminders },
     { ico: '🔊', name: 'Som & Ambiente', sub: 'Drone, SFX do sistema', toggle: true, on: audio.enabled, action: () => audio.toggle() },
-    { ico: '🔄', name: 'Resetar Dia', sub: 'Zerar quests de hoje', action: resetDay },
-    { ico: '🌐', name: 'Idioma', sub: 'Português (BR)', arrow: true },
-    { ico: '🛡', name: 'Privacidade & Dados', sub: 'Conta e segurança', arrow: true },
+    { ico: '🔄', name: 'Resetar Dia', sub: 'Zerar quests de hoje', action: () => { resetDay(); flash('Dia resetado 🔄') } },
+    { ico: '🌐', name: 'Idioma', sub: 'Português (BR)', action: () => flash('Em breve 🔒') },
+    { ico: '🛡', name: 'Privacidade & Dados', sub: 'Conta e segurança', action: () => flash('Em breve 🔒') },
   ]
 
   return (
@@ -109,6 +116,20 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
       <div className="mt-5 text-center text-[10px] tracking-wide text-violet-soft/40">
         SISTEMA · Solo Leveling Life System · v1.0
       </div>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="glass fixed bottom-24 left-1/2 z-[80] -translate-x-1/2 rounded-full border border-violet-glow/40 px-4 py-2 text-[12px] font-semibold text-cold"
+            style={{ boxShadow: '0 0 18px rgba(106,0,255,.4)' }}
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Screen>
   )
 }

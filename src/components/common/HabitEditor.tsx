@@ -174,6 +174,9 @@ export default function HabitEditor({
               <Field label="REPETIÇÃO">
                 <select value={d.repeticao} onChange={(e) => set('repeticao', e.target.value)} className="inp">
                   <option>Diário</option>
+                  <option>Seg a Sex</option>
+                  <option>Seg a Sáb</option>
+                  <option>3x na semana</option>
                   <option>Dias úteis</option>
                   <option>Fins de semana</option>
                   <option>Semanal</option>

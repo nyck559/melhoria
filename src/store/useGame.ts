@@ -31,6 +31,7 @@ export const useGame = create<FullState>()(
       rewards: INITIAL_REWARDS,
       redemptions: [],
       equipped: {},
+      ownedEquip: [],
       lastResetDate: todayStr(),
       reminders: false,
       lastPenalty: null,
@@ -161,8 +162,24 @@ export const useGame = create<FullState>()(
       },
 
       /* ---------- equipment ---------- */
+      buyEquip: (itemId) => {
+        const it = itemById(itemId)
+        if (!it) return
+        const s = get()
+        if (s.ownedEquip.includes(itemId)) return
+        const bal = it.moeda === 'coins' ? s.coins : s.crystals
+        if (bal < it.custo) return
+        set({
+          [it.moeda]: bal - it.custo,
+          ownedEquip: [...s.ownedEquip, itemId],
+          equipped: { ...s.equipped, [it.slot]: itemId }, // auto-equip on purchase
+        } as Partial<FullState>)
+      },
+
       equipItem: (slot, itemId) =>
         set((s) => {
+          // can only equip something you own
+          if (itemId && !s.ownedEquip.includes(itemId)) return {}
           const next = { ...s.equipped }
           if (itemId) next[slot] = itemId
           else delete next[slot]
@@ -209,7 +226,7 @@ export const useGame = create<FullState>()(
       clearPenalty: () => set({ lastPenalty: null }),
     }),
     {
-      name: 'sl-life-system-v2',
+      name: 'sl-life-system-v3',
       partialize: (s) => ({
         xp: s.xp,
         attrs: s.attrs,
@@ -220,6 +237,7 @@ export const useGame = create<FullState>()(
         rewards: s.rewards,
         redemptions: s.redemptions,
         equipped: s.equipped,
+        ownedEquip: s.ownedEquip,
         lastResetDate: s.lastResetDate,
         reminders: s.reminders,
         lastPenalty: s.lastPenalty,
