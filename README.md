@@ -92,11 +92,25 @@ usuário define (CRUD): "Rede social 30 min", "Doce", "R$20 para gastar", etc.
 soma **poder** e **atributos** (e alguns trocam a **aura** do personagem). O
 `PODER TOTAL` e a aura refletem o que está equipado.
 
-## Reset diário
+## Reset diário & penalidade
 
 `checkDailyReset()` zera as missões concluídas e os resgates do dia quando a data
-muda (roda no rehydrate do `persist` e num intervalo no `App`). Streak de missões
-não concluídas no dia anterior é reduzida.
+muda (roda no rehydrate do `persist` e num intervalo no `App`). Missões **não
+cumpridas** no dia anterior aplicam **penalidade real**: perda de moedas
+(`penalidade` de cada missão) e aumento da **corrupção** (sobe Preguiça/Gula,
+escurecendo a aura do personagem). Um overlay "PENALIDADE" mostra o relatório.
+
+## Lembretes por horário
+
+Toggle **Lembretes** no Perfil. Com o app aberto, `Reminders` dispara um alerta
+(Notificação do navegador, se permitida, + toast no app + som) quando chega o
+horário de uma missão ainda não concluída — uma vez por dia por missão.
+
+## Deploy (GitHub Pages)
+
+`.github/workflows/deploy.yml` builda e publica no GitHub Pages a cada push.
+Para ativar: **Settings → Pages → Source: GitHub Actions** (uma vez). O `base`
+do Vite é `./`, então funciona no subcaminho do Pages.
 
 ## Sistema de XP / evolução
 

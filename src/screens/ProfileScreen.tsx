@@ -11,11 +11,21 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
   const rank = rankForLevel(level)
   const rd = RANK_DATA[rank]
   const resetDay = useGame((s) => s.resetDay)
+  const reminders = useGame((s) => s.reminders)
+  const toggleReminders = useGame((s) => s.toggleReminders)
   const audio = useAudio()
+
+  const onToggleReminders = () => {
+    if (!reminders && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {})
+    }
+    toggleReminders()
+  }
 
   const rows = [
     { ico: '👤', name: 'Personalização', sub: 'Avatar, título, aura', arrow: true },
     { ico: '🏆', name: 'Ranking Global', sub: `Você é RANK ${rank}`, action: () => onNav('rank') },
+    { ico: '⏰', name: 'Lembretes', sub: 'Alertas das missões no horário', toggle: true, on: reminders, action: onToggleReminders },
     { ico: '🔊', name: 'Som & Ambiente', sub: 'Drone, SFX do sistema', toggle: true, on: audio.enabled, action: () => audio.toggle() },
     { ico: '🔄', name: 'Resetar Dia', sub: 'Zerar quests de hoje', action: resetDay },
     { ico: '🌐', name: 'Idioma', sub: 'Português (BR)', arrow: true },

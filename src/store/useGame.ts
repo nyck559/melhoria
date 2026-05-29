@@ -32,6 +32,8 @@ export const useGame = create<FullState>()(
       redemptions: [],
       equipped: {},
       lastResetDate: todayStr(),
+      reminders: false,
+      lastPenalty: null,
       lastXpGain: 0,
       lastLevelUp: 0,
 
@@ -152,21 +154,43 @@ export const useGame = create<FullState>()(
           return { equipped: next }
         }),
 
-      /* ---------- daily reset ---------- */
+      /* ---------- daily reset (+ penalty for missed missions) ---------- */
       checkDailyReset: () => {
         const today = todayStr()
-        if (get().lastResetDate === today) return
-        set((s) => ({
+        const s = get()
+        if (s.lastResetDate === today) return
+
+        const missed = s.habits.filter((h) => !h.concluidoHoje)
+        const coinsLost = missed.reduce((a, h) => a + (h.penalidade || 0), 0)
+        const n = missed.length
+
+        // missing missions feeds corruption (Preguiça most, Gula a bit)
+        const avg = (arr: { corrupcao: number }[]) =>
+          arr.length ? arr.reduce((a, x) => a + x.corrupcao, 0) / arr.length : 0
+        const newSins = s.sins.map((sin) => {
+          if (sin.id === 's-preguica') return { ...sin, corrupcao: clamp(sin.corrupcao + n * 8, 0, 100) }
+          if (sin.id === 's-gula') return { ...sin, corrupcao: clamp(sin.corrupcao + n * 4, 0, 100) }
+          return sin
+        })
+        const corruptionGain = Math.round(avg(newSins) - avg(s.sins))
+
+        set({
           lastResetDate: today,
+          coins: Math.max(0, s.coins - coinsLost),
+          sins: newSins,
           habits: s.habits.map((h) => ({
             ...h,
             concluidoHoje: false,
-            // break streak for habits that were not completed
             streak: h.concluidoHoje ? h.streak : Math.max(0, h.streak - 1),
           })),
           rewards: s.rewards.map((r) => ({ ...r, resgatadosHoje: 0 })),
-        }))
+          lastPenalty: n > 0 ? { date: today, missed: n, coins: coinsLost, corruption: corruptionGain } : s.lastPenalty,
+        })
       },
+
+      toggleReminders: () => set((s) => ({ reminders: !s.reminders })),
+
+      clearPenalty: () => set({ lastPenalty: null }),
     }),
     {
       name: 'sl-life-system',
@@ -181,6 +205,8 @@ export const useGame = create<FullState>()(
         redemptions: s.redemptions,
         equipped: s.equipped,
         lastResetDate: s.lastResetDate,
+        reminders: s.reminders,
+        lastPenalty: s.lastPenalty,
       }),
       onRehydrateStorage: () => (state) => {
         state?.checkDailyReset()

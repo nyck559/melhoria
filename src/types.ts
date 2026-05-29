@@ -95,6 +95,13 @@ export interface BossReward {
   attrs: Partial<Record<AttrKey, number>>
 }
 
+export interface PenaltyReport {
+  date: string
+  missed: number
+  coins: number
+  corruption: number // average corruption gained
+}
+
 export interface GameState {
   xp: number
   level: number
@@ -108,6 +115,8 @@ export interface GameState {
   redemptions: Redemption[]
   equipped: Partial<Record<EquipSlot, string>>
   lastResetDate: string // 'YYYY-MM-DD'
+  reminders: boolean
+  lastPenalty: PenaltyReport | null
   // actions
   completeHabit: (id: string) => void
   uncompleteHabit: (id: string) => void
@@ -124,4 +133,6 @@ export interface GameState {
   defeatBoss: (reward: BossReward) => void
   equipItem: (slot: EquipSlot, itemId: string | null) => void
   checkDailyReset: () => void
+  toggleReminders: () => void
+  clearPenalty: () => void
 }

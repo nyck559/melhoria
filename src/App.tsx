@@ -8,6 +8,8 @@ import type { BossReward } from './types'
 import Atmosphere from './components/atmosphere/Atmosphere'
 import BottomNav, { type ScreenKey } from './components/nav/BottomNav'
 import FxOverlay from './components/hud/FxOverlay'
+import Reminders from './components/hud/Reminders'
+import PenaltyOverlay from './components/hud/PenaltyOverlay'
 import StatusScreen from './screens/StatusScreen'
 import QuestsScreen from './screens/QuestsScreen'
 import HunterScreen from './screens/HunterScreen'
@@ -121,8 +123,10 @@ export default function App() {
           {view === 'manage' && <ManageQuestsScreen key="manage" onBack={() => setView('quests')} />}
         </AnimatePresence>
 
-        {/* cinematic FX */}
+        {/* cinematic FX + reminders + penalty report */}
         <FxOverlay />
+        <Reminders />
+        <PenaltyOverlay />
 
         {/* BOTTOM NAV */}
         <BottomNav active={navKey} onChange={(k) => setView(k)} accent={accent} />
