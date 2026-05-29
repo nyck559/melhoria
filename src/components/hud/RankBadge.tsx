@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import type { Rank } from '../../types'
 
 interface Props {
@@ -11,26 +10,17 @@ interface Props {
 export default function RankBadge({ rank, color, size = 120, rings = true }: Props) {
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
-      {/* glow */}
-      <motion.div
-        className="absolute inset-0 rounded-full blur-2xl"
+      {/* static glow */}
+      <div
+        className="absolute inset-0 rounded-full blur-2xl opacity-70"
         style={{ background: `radial-gradient(circle, ${color}, transparent 65%)` }}
-        animate={{ opacity: [0.4, 0.85, 0.4], scale: [1, 1.12, 1] }}
-        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
       />
       {rings && (
         <>
-          <motion.div
-            className="absolute rounded-full border"
-            style={{ inset: 2, borderColor: `${color}88`, borderStyle: 'dashed' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.div
+          <div className="absolute rounded-full border" style={{ inset: 2, borderColor: `${color}88`, borderStyle: 'dashed' }} />
+          <div
             className="absolute rounded-full border-2"
             style={{ inset: size * 0.12, borderColor: `${color}55`, borderTopColor: color, borderRightColor: 'transparent' }}
-            animate={{ rotate: -360 }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
           />
         </>
       )}

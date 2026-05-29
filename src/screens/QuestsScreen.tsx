@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, GlowButton, EnergyBar } from '../components/common/ui'
 import HabitEditor from '../components/common/HabitEditor'
+import SinList from '../components/common/SinList'
 import { useGame } from '../store/useGame'
 import { useAudio } from '../hooks/useAudio'
 import { CATEGORIES, RARITY, coinsForHabit } from '../data/game'
@@ -42,12 +43,6 @@ export default function QuestsScreen({ onManage }: { onManage: () => void }) {
         className="relative overflow-hidden rounded-2xl p-[1.4px]"
         style={{ background: `linear-gradient(120deg, ${rar.color}, transparent 60%, ${rar.color}88)` }}
       >
-        <motion.div
-          className="pointer-events-none absolute inset-0 opacity-60"
-          style={{ background: `linear-gradient(120deg, transparent, ${rar.glow}, transparent)` }}
-          animate={{ x: ['-120%', '120%'] }}
-          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
         <div className="glass relative flex items-center gap-3 rounded-2xl p-3">
           {/* complete toggle */}
           <button
@@ -154,18 +149,22 @@ export default function QuestsScreen({ onManage }: { onManage: () => void }) {
         <EnergyBar value={(done / Math.max(1, habits.length)) * 100} c1="#6a00ff" c2="#43ffb0" height={10} />
         <div className="mt-3 flex gap-2">
           {['◆', '⬡', '🔮', '🎁'].map((r, i) => (
-            <motion.div
+            <div
               key={i}
-              animate={done / habits.length > (i + 1) / 4 ? { scale: [1, 1.15, 1] } : {}}
-              transition={{ duration: 1.4, repeat: Infinity }}
               className="grid flex-1 place-items-center rounded-xl border border-violet-glow/20 bg-black/30 py-3 text-xl"
               style={{ opacity: done / habits.length > i / 4 ? 1 : 0.35 }}
             >
               {r}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
+
+      {/* PECADOS — resista hoje */}
+      <SectionLabel right={<span className="text-[9px] text-violet-soft/50">marque "não caí"</span>}>
+        ✷ PECADOS
+      </SectionLabel>
+      <SinList />
 
       <HabitEditor
         open={open}

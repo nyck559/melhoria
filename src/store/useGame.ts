@@ -20,7 +20,7 @@ interface FullState extends GameState {
 export const useGame = create<FullState>()(
   persist(
     (set, get) => ({
-      xp: INITIAL_HABITS.filter((h) => h.concluidoHoje).reduce((a, h) => a + h.xp, 1820),
+      xp: 0,
       level: 1,
       attrs: { ...INITIAL_ATTRS },
       habits: INITIAL_HABITS,
@@ -91,7 +91,22 @@ export const useGame = create<FullState>()(
           sins: s.sins.map((x) => (x.id === id ? { ...x, corrupcao: clamp(corrupcao, 0, 100) } : x)),
         })),
 
-      resetSins: () => set((s) => ({ sins: s.sins.map((x) => ({ ...x, corrupcao: 0, nivel: 1 })) })),
+      // marking "não caí" (resisted) lowers the bar; un-marking restores it. Never auto-raises here.
+      toggleResist: (id) =>
+        set((s) => ({
+          sins: s.sins.map((x) => {
+            if (x.id !== id) return x
+            const resist = !x.resistidoHoje
+            return {
+              ...x,
+              resistidoHoje: resist,
+              corrupcao: clamp(x.corrupcao + (resist ? -12 : 12), 0, 100),
+            }
+          }),
+        })),
+
+      resetSins: () =>
+        set((s) => ({ sins: s.sins.map((x) => ({ ...x, corrupcao: 0, nivel: 1, resistidoHoje: false })) })),
 
       resetDay: () =>
         set((s) => ({
@@ -168,9 +183,10 @@ export const useGame = create<FullState>()(
         const avg = (arr: { corrupcao: number }[]) =>
           arr.length ? arr.reduce((a, x) => a + x.corrupcao, 0) / arr.length : 0
         const newSins = s.sins.map((sin) => {
-          if (sin.id === 's-preguica') return { ...sin, corrupcao: clamp(sin.corrupcao + n * 8, 0, 100) }
-          if (sin.id === 's-gula') return { ...sin, corrupcao: clamp(sin.corrupcao + n * 4, 0, 100) }
-          return sin
+          const base = { ...sin, resistidoHoje: false } // new day: reset resist marks
+          if (sin.id === 's-preguica') return { ...base, corrupcao: clamp(sin.corrupcao + n * 8, 0, 100) }
+          if (sin.id === 's-gula') return { ...base, corrupcao: clamp(sin.corrupcao + n * 4, 0, 100) }
+          return base
         })
         const corruptionGain = Math.round(avg(newSins) - avg(s.sins))
 
@@ -193,7 +209,7 @@ export const useGame = create<FullState>()(
       clearPenalty: () => set({ lastPenalty: null }),
     }),
     {
-      name: 'sl-life-system',
+      name: 'sl-life-system-v2',
       partialize: (s) => ({
         xp: s.xp,
         attrs: s.attrs,

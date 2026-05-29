@@ -29,25 +29,11 @@ export function useParallax(): Parallax {
       rawY.set(Math.max(-1, Math.min(1, (e.beta - 45) / 35)))
     }
 
-    // desktop idle drift fallback
-    let t = 0
-    let raf = 0
-    const drift = () => {
-      t += 0.008
-      if (Math.abs(rawX.get()) < 0.02 && Math.abs(rawY.get()) < 0.02) {
-        rawX.set(Math.sin(t) * 0.25)
-        rawY.set(Math.cos(t * 0.8) * 0.18)
-      }
-      raf = requestAnimationFrame(drift)
-    }
-
     window.addEventListener('pointermove', onPointer)
     window.addEventListener('deviceorientation', onOrient)
-    raf = requestAnimationFrame(drift)
     return () => {
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('deviceorientation', onOrient)
-      cancelAnimationFrame(raf)
     }
   }, [rawX, rawY])
 

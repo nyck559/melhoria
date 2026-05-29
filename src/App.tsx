@@ -53,12 +53,9 @@ export default function App() {
   const audio = useAudio()
 
   return (
-    <div className="grid h-full w-full place-items-center bg-void">
-      {/* device column */}
-      <div
-        className="relative h-full w-full max-w-[460px] overflow-hidden bg-void md:my-3 md:h-[min(900px,96vh)] md:rounded-[40px] md:border md:border-violet-glow/20"
-        style={{ boxShadow: '0 0 60px rgba(106,0,255,.25)' }}
-      >
+    <div className="h-full w-full bg-void">
+      {/* fullscreen root */}
+      <div className="relative h-full w-full overflow-hidden bg-void">
         {/* GLOBAL ATMOSPHERE */}
         <Atmosphere px={px} py={py} accent={accent} corrupt={corrupt} hue={corrupt ? 345 : 268} />
 

@@ -49,6 +49,7 @@ export interface Sin {
   descricao: string
   nivel: number
   corrupcao: number // 0..100
+  resistidoHoje: boolean
 }
 
 export type RewardCategory = 'dinheiro' | 'doce' | 'social' | 'lazer' | 'descanso' | 'outro'
@@ -124,6 +125,7 @@ export interface GameState {
   updateHabit: (id: string, patch: Partial<Habit>) => void
   removeHabit: (id: string) => void
   setSin: (id: string, corrupcao: number) => void
+  toggleResist: (id: string) => void
   resetSins: () => void
   resetDay: () => void
   redeemReward: (id: string) => void

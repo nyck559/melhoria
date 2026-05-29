@@ -25,14 +25,6 @@ export default function StatusScreen({ px, py }: { px: MotionValue<number>; py: 
           className="absolute inset-x-0 bottom-0 h-2/3"
           style={{ background: `radial-gradient(120% 90% at 50% 120%, ${rd.color}55, transparent 60%)` }}
         />
-        {/* scan sweep */}
-        <motion.div
-          className="pointer-events-none absolute inset-x-0 h-24"
-          style={{ background: `linear-gradient(${rd.color}00, ${rd.color}33, ${rd.color}00)` }}
-          animate={{ top: ['-20%', '110%'] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-
         <Hunter tier={tier} accent={rd.color} px={px} py={py} corrupt={corruption > 65} className="absolute inset-0" />
 
         {/* rank badge */}
