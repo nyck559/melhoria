@@ -2,20 +2,19 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel } from '../components/common/ui'
-import { useGame, useLevelInfo, usePower } from '../store/useGame'
+import { useGame, useCoins } from '../store/useGame'
 import { useAudio } from '../hooks/useAudio'
-import { RANK_DATA, rankForLevel } from '../data/game'
 
-export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void }) {
-  const { level } = useLevelInfo()
-  const power = usePower()
-  const rank = rankForLevel(level)
-  const rd = RANK_DATA[rank]
+export default function ProfileScreen() {
+  const coins = useCoins()
+  const habits = useGame((s) => s.habits)
   const resetDay = useGame((s) => s.resetDay)
   const reminders = useGame((s) => s.reminders)
   const toggleReminders = useGame((s) => s.toggleReminders)
   const audio = useAudio()
   const [toast, setToast] = useState<string | null>(null)
+
+  const bestStreak = habits.reduce((m, h) => Math.max(m, h.streak), 0)
 
   const flash = (msg: string) => {
     setToast(msg)
@@ -31,31 +30,29 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
   }
 
   const rows = [
-    { ico: '🏆', name: 'Ranking Global', sub: `Você é RANK ${rank}`, action: () => onNav('rank') },
     { ico: '⏰', name: 'Lembretes', sub: 'Alertas das missões no horário', toggle: true, on: reminders, action: onToggleReminders },
     { ico: '🔊', name: 'Som & Ambiente', sub: 'Drone, SFX do sistema', toggle: true, on: audio.enabled, action: () => audio.toggle() },
-    { ico: '🔄', name: 'Resetar Dia', sub: 'Zerar quests de hoje', action: () => { resetDay(); flash('Dia resetado 🔄') } },
+    { ico: '🔄', name: 'Resetar Dia', sub: 'Zerar missões de hoje', action: () => { resetDay(); flash('Dia resetado 🔄') } },
     { ico: '🌐', name: 'Idioma', sub: 'Português (BR)', action: () => flash('Em breve 🔒') },
     { ico: '🛡', name: 'Privacidade & Dados', sub: 'Conta e segurança', action: () => flash('Em breve 🔒') },
   ]
 
+  const accent = '#8b3bff'
+
   return (
     <Screen>
-      <ScreenTitle title="PERFIL" sub="Configurações do caçador" />
+      <ScreenTitle title="PERFIL" sub="Configurações" />
 
       <motion.div
         className="relative mb-5 overflow-hidden rounded-3xl border border-violet-glow/25 p-4 scanlines"
-        style={{ background: `radial-gradient(120% 120% at 100% 0%, ${rd.color}33, transparent 60%), rgba(20,14,38,.55)` }}
+        style={{ background: `radial-gradient(120% 120% at 100% 0%, ${accent}33, transparent 60%), rgba(20,14,38,.55)` }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex items-center gap-4">
-          <div
-            className="h-20 w-20 overflow-hidden rounded-2xl"
-            style={{ border: `1px solid ${rd.color}66`, boxShadow: `0 0 20px ${rd.color}55` }}
-          >
+          <div className="h-20 w-20 overflow-hidden rounded-2xl" style={{ border: `1px solid ${accent}66`, boxShadow: `0 0 20px ${accent}55` }}>
             <img
-              src={`${import.meta.env.BASE_URL}art/hunter_dominant.webp`}
+              src={`${import.meta.env.BASE_URL}models/sjw_awakening.png`}
               alt=""
               draggable={false}
               className="h-full w-full select-none object-cover"
@@ -63,11 +60,9 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
             />
           </div>
           <div>
-            <div className="font-display text-glow text-xl font-extrabold">Jin Woo</div>
-            <div className="text-[11px] tracking-wide" style={{ color: rd.color }}>
-              RANK {rank} · {rd.name}
-            </div>
-            <div className="font-num mt-1 text-[11px] text-violet-soft/60">Nível {level} · Poder {power.toLocaleString('pt-BR')}</div>
+            <div className="font-display text-glow text-xl font-extrabold">Sung Jinwoo</div>
+            <div className="text-[11px] tracking-wide" style={{ color: accent }}>Caçador da vida real</div>
+            <div className="font-num mt-1 text-[11px] text-violet-soft/60">⬡ {coins.toLocaleString('pt-BR')} · 🔥 {bestStreak}d ofensiva</div>
           </div>
         </div>
       </motion.div>
@@ -100,11 +95,7 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
                   boxShadow: r.on ? '0 0 14px rgba(106,0,255,.6)' : 'none',
                 }}
               >
-                <motion.span
-                  className="absolute top-0.5 rounded-full bg-white"
-                  style={{ width: 18, height: 18 }}
-                  animate={{ left: r.on ? 22 : 2 }}
-                />
+                <motion.span className="absolute top-0.5 rounded-full bg-white" style={{ width: 18, height: 18 }} animate={{ left: r.on ? 22 : 2 }} />
               </span>
             ) : (
               <span className="text-lg text-violet-soft/50">›</span>
@@ -114,7 +105,7 @@ export default function ProfileScreen({ onNav }: { onNav: (k: 'rank') => void })
       </div>
 
       <div className="mt-5 text-center text-[10px] tracking-wide text-violet-soft/40">
-        SISTEMA · Solo Leveling Life System · v1.0
+        SISTEMA · Solo Leveling Life · v2.0
       </div>
 
       <AnimatePresence>

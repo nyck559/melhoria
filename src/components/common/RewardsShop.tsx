@@ -1,15 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
-import { useGame, useCoins, useCrystals } from '../../store/useGame'
+import { useGame, useCoins, useCrystals, useSinBlocked } from '../../store/useGame'
 import { useAudio } from '../../hooks/useAudio'
 import { CURRENCY, REWARD_CATEGORIES } from '../../data/game'
 import { AnimatedNumber, GlowButton, SectionLabel } from './ui'
 import RewardEditor from './RewardEditor'
 import type { Reward } from '../../types'
 
-export default function RewardsShop() {
+export default function RewardsShop({ onGoConfess }: { onGoConfess?: () => void }) {
   const rewards = useGame((s) => s.rewards)
   const redemptions = useGame((s) => s.redemptions)
+  const blocked = useSinBlocked()
   const coins = useCoins()
   const crystals = useCrystals()
   const redeemReward = useGame((s) => s.redeemReward)
@@ -26,6 +27,24 @@ export default function RewardsShop() {
 
   return (
     <div>
+      {/* confession lock banner */}
+      {blocked && (
+        <motion.button
+          onClick={onGoConfess}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl border p-3 text-left"
+          style={{ borderColor: 'rgba(255,45,94,.55)', background: 'linear-gradient(160deg, rgba(60,8,24,.9), rgba(12,4,10,.92))', boxShadow: '0 0 22px rgba(255,45,94,.3)' }}
+        >
+          <span className="text-2xl">🔒</span>
+          <div className="flex-1">
+            <div className="font-display text-[13px] font-black text-corrupt">RECOMPENSAS BLOQUEADAS</div>
+            <div className="text-[10px] text-violet-soft/65">Você caiu em um pecado — toque para confessar e liberar.</div>
+          </div>
+          <span className="text-lg text-corrupt">›</span>
+        </motion.button>
+      )}
+
       {/* balances */}
       <div className="mb-4 grid grid-cols-2 gap-3">
         {(['coins', 'crystals'] as const).map((m) => (
@@ -56,7 +75,7 @@ export default function RewardsShop() {
             const bal = balance(r.moeda)
             const limitHit = !!r.limitePorDia && r.resgatadosHoje >= r.limitePorDia
             const poor = bal < r.custo
-            const disabled = poor || limitHit
+            const disabled = poor || limitHit || blocked
             return (
               <motion.div
                 key={r.id}
@@ -108,7 +127,7 @@ export default function RewardsShop() {
                   }}
                   className={`!px-3 !py-2 text-[10px] ${disabled ? 'opacity-50' : ''}`}
                 >
-                  {limitHit ? 'LIMITE' : poor ? 'SEM SALDO' : 'RESGATAR'}
+                  {blocked ? '🔒 BLOQUEADO' : limitHit ? 'LIMITE' : poor ? 'SEM SALDO' : 'RESGATAR'}
                 </GlowButton>
 
                 <AnimatePresence>

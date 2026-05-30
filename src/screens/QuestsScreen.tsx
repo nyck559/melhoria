@@ -3,7 +3,6 @@ import { useState } from 'react'
 import Screen from '../components/common/Screen'
 import { ScreenTitle, SectionLabel, GlowButton, EnergyBar } from '../components/common/ui'
 import HabitEditor from '../components/common/HabitEditor'
-import SinList from '../components/common/SinList'
 import { useGame } from '../store/useGame'
 import { useAudio } from '../hooks/useAudio'
 import { CATEGORIES, RARITY, coinsForHabit } from '../data/game'
@@ -28,6 +27,8 @@ export default function QuestsScreen({ onManage }: { onManage: () => void }) {
   const [open, setOpen] = useState(false)
 
   const done = habits.filter((h) => h.concluidoHoje).length
+  const coinsToday = habits.filter((h) => h.concluidoHoje).reduce((a, h) => a + coinsForHabit(h), 0)
+  const coinsPossible = habits.reduce((a, h) => a + coinsForHabit(h), 0)
 
   const openEdit = (h: Habit) => { setEditing(h); setOpen(true); play('ui') }
 
@@ -103,8 +104,8 @@ export default function QuestsScreen({ onManage }: { onManage: () => void }) {
   return (
     <Screen>
       <ScreenTitle
-        title="QUESTS DIÁRIAS"
-        sub={`${done}/${habits.length} concluídas`}
+        title="MISSÕES"
+        sub={`${done}/${habits.length} concluídas hoje`}
         right={
           <div className="flex gap-1.5">
             <GlowButton variant="ghost" sound="menu" onClick={onManage} className="!px-3 !py-2 text-[10px]">
@@ -139,32 +140,18 @@ export default function QuestsScreen({ onManage }: { onManage: () => void }) {
         )
       })}
 
-      {/* daily progress */}
-      <SectionLabel>PROGRESSO DIÁRIO</SectionLabel>
+      {/* coins earned today */}
+      <SectionLabel>MOEDAS DE HOJE</SectionLabel>
       <div className="glass rounded-2xl px-4 py-3">
         <div className="font-num mb-2 flex justify-between text-[11px] tracking-wide text-violet-soft/70">
-          <span>RECOMPENSA DIÁRIA</span>
-          <span>{Math.round((done / Math.max(1, habits.length)) * 100)}%</span>
+          <span className="text-gold">⬡ {coinsToday} ganhas</span>
+          <span className="text-violet-soft/50">de {coinsPossible} possíveis</span>
         </div>
-        <EnergyBar value={(done / Math.max(1, habits.length)) * 100} c1="#6a00ff" c2="#43ffb0" height={10} />
-        <div className="mt-3 flex gap-2">
-          {['◆', '⬡', '🔮', '🎁'].map((r, i) => (
-            <div
-              key={i}
-              className="grid flex-1 place-items-center rounded-xl border border-violet-glow/20 bg-black/30 py-3 text-xl"
-              style={{ opacity: done / habits.length > i / 4 ? 1 : 0.35 }}
-            >
-              {r}
-            </div>
-          ))}
-        </div>
+        <EnergyBar value={(coinsToday / Math.max(1, coinsPossible)) * 100} c1="#6a00ff" c2="#ffcb57" height={10} />
+        <p className="mt-2 text-[10px] text-violet-soft/55">
+          Cada missão concluída vira moeda para trocar por recompensas reais na loja.
+        </p>
       </div>
-
-      {/* PECADOS — resista hoje */}
-      <SectionLabel right={<span className="text-[9px] text-violet-soft/50">marque "não caí"</span>}>
-        ✷ PECADOS
-      </SectionLabel>
-      <SinList />
 
       <HabitEditor
         open={open}

@@ -50,6 +50,7 @@ export interface Sin {
   nivel: number
   corrupcao: number // 0..100
   resistidoHoje: boolean
+  caiuHoje: boolean // fell into this sin — locks rewards until confession
 }
 
 export type RewardCategory = 'dinheiro' | 'doce' | 'social' | 'lazer' | 'descanso' | 'outro'
@@ -121,6 +122,8 @@ export interface GameState {
   lastResetDate: string // 'YYYY-MM-DD'
   reminders: boolean
   lastPenalty: PenaltyReport | null
+  sinBlocked: boolean // fell into sin → rewards locked until confession
+  history: Record<string, number> // 'YYYY-MM-DD' → missions completed that day
   // actions
   completeHabit: (id: string) => void
   uncompleteHabit: (id: string) => void
@@ -129,6 +132,8 @@ export interface GameState {
   removeHabit: (id: string) => void
   setSin: (id: string, corrupcao: number) => void
   toggleResist: (id: string) => void
+  fallSin: (id: string) => void
+  confess: () => void
   resetSins: () => void
   resetDay: () => void
   redeemReward: (id: string) => void

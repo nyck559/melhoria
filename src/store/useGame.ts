@@ -38,12 +38,14 @@ export const useGame = create<FullState>()(
       lastResetDate: todayStr(),
       reminders: false,
       lastPenalty: null,
+      sinBlocked: false,
+      history: {},
       lastXpGain: 0,
       lastLevelUp: 0,
       lastStreakMilestone: null,
 
       completeHabit: (id) => {
-        const { habits, xp, attrs, coins, crystals } = get()
+        const { habits, xp, attrs, coins, crystals, history } = get()
         const h = habits.find((x) => x.id === id)
         if (!h || h.concluidoHoje) return
         const beforeLvl = levelFromXp(xp).level
@@ -53,12 +55,14 @@ export const useGame = create<FullState>()(
         h.atributos.forEach((a) => (newAttrs[a] = clamp(newAttrs[a] + (1 + Math.floor(h.xp / 120)))))
         const newStreak = h.streak + 1
         const milestone = STREAK_MILESTONES.includes(newStreak)
+        const today = todayStr()
         set({
           xp: newXp,
           attrs: newAttrs,
           coins: coins + coinsForHabit(h),
           crystals: crystals + crystalsForHabit(h),
           habits: habits.map((x) => (x.id === id ? { ...x, concluidoHoje: true, streak: newStreak } : x)),
+          history: { ...history, [today]: (history[today] ?? 0) + 1 },
           lastXpGain: h.xp,
           lastLevelUp: afterLvl > beforeLvl ? afterLvl : get().lastLevelUp,
           lastStreakMilestone: milestone ? { nome: h.nome, days: newStreak, ts: Date.now() } : get().lastStreakMilestone,
@@ -66,11 +70,12 @@ export const useGame = create<FullState>()(
       },
 
       uncompleteHabit: (id) => {
-        const { habits, xp, attrs, coins } = get()
+        const { habits, xp, attrs, coins, history } = get()
         const h = habits.find((x) => x.id === id)
         if (!h || !h.concluidoHoje) return
         const newAttrs = { ...attrs }
         h.atributos.forEach((a) => (newAttrs[a] = clamp(newAttrs[a] - (1 + Math.floor(h.xp / 120)))))
+        const today = todayStr()
         set({
           xp: clamp(xp - h.xp, 0, 9_999_999),
           attrs: newAttrs,
@@ -79,6 +84,7 @@ export const useGame = create<FullState>()(
           habits: habits.map((x) =>
             x.id === id ? { ...x, concluidoHoje: false, streak: Math.max(0, x.streak - 1) } : x,
           ),
+          history: { ...history, [today]: Math.max(0, (history[today] ?? 0) - 1) },
         })
       },
 
@@ -106,13 +112,30 @@ export const useGame = create<FullState>()(
             return {
               ...x,
               resistidoHoje: resist,
+              caiuHoje: resist ? false : x.caiuHoje, // resisting clears a prior fall mark
               corrupcao: clamp(x.corrupcao + (resist ? -12 : 12), 0, 100),
             }
           }),
         })),
 
+      // falling into a sin raises corruption and LOCKS rewards until confession
+      fallSin: (id) =>
+        set((s) => ({
+          sinBlocked: true,
+          sins: s.sins.map((x) =>
+            x.id === id ? { ...x, caiuHoje: true, resistidoHoje: false, corrupcao: clamp(x.corrupcao + 18, 0, 100) } : x,
+          ),
+        })),
+
+      // confession lifts the lock, clears fall marks and grants a little relief
+      confess: () =>
+        set((s) => ({
+          sinBlocked: false,
+          sins: s.sins.map((x) => ({ ...x, caiuHoje: false, corrupcao: clamp(x.corrupcao - 8, 0, 100) })),
+        })),
+
       resetSins: () =>
-        set((s) => ({ sins: s.sins.map((x) => ({ ...x, corrupcao: 0, nivel: 1, resistidoHoje: false })) })),
+        set((s) => ({ sinBlocked: false, sins: s.sins.map((x) => ({ ...x, corrupcao: 0, nivel: 1, resistidoHoje: false, caiuHoje: false })) })),
 
       resetDay: () =>
         set((s) => ({
@@ -122,7 +145,8 @@ export const useGame = create<FullState>()(
 
       /* ---------- rewards economy ---------- */
       redeemReward: (id) => {
-        const { rewards, coins, crystals, redemptions } = get()
+        const { rewards, coins, crystals, redemptions, sinBlocked } = get()
+        if (sinBlocked) return // locked until confession
         const r = rewards.find((x) => x.id === id)
         if (!r) return
         const bal = r.moeda === 'coins' ? coins : crystals
@@ -231,7 +255,7 @@ export const useGame = create<FullState>()(
       clearPenalty: () => set({ lastPenalty: null }),
     }),
     {
-      name: 'sl-life-system-v3',
+      name: 'sl-life-system-v4',
       partialize: (s) => ({
         xp: s.xp,
         attrs: s.attrs,
@@ -246,6 +270,8 @@ export const useGame = create<FullState>()(
         lastResetDate: s.lastResetDate,
         reminders: s.reminders,
         lastPenalty: s.lastPenalty,
+        sinBlocked: s.sinBlocked,
+        history: s.history,
       }),
       onRehydrateStorage: () => (state) => {
         state?.checkDailyReset()
@@ -307,6 +333,25 @@ export const useEquippedAura = (): string | undefined => {
 
 export const useCoins = () => useGame((s) => s.coins)
 export const useCrystals = () => useGame((s) => s.crystals)
+
+/** Last `days` of daily missions-completed counts, oldest → newest. */
+export const useDailyHistory = (days = 7) => {
+  const history = useGame((s) => s.history) ?? {}
+  const habits = useGame((s) => s.habits)
+  const out: { date: string; label: string; value: number }[] = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    // today's count comes live from concluidoHoje so it reacts instantly
+    const value = i === 0 ? habits.filter((h) => h.concluidoHoje).length : history[key] ?? 0
+    out.push({ date: key, label: d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3), value })
+  }
+  return out
+}
+
+export const useSinBlocked = () => useGame((s) => s.sinBlocked)
 
 /** Discipline 0..100 for the 3D aura — driven by the disciplina attribute + best streak. */
 export const useDiscipline = () => {

@@ -2,9 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useParallax } from './hooks/useParallax'
 import { useAudio } from './hooks/useAudio'
-import { useGame, useLevelInfo, useCorruption, useCoins, useCrystals } from './store/useGame'
-import { RANK_DATA, rankForLevel } from './data/game'
-import type { BossReward } from './types'
+import { useGame, useCorruption, useCoins } from './store/useGame'
 import Atmosphere from './components/atmosphere/Atmosphere'
 import BottomNav, { type ScreenKey } from './components/nav/BottomNav'
 import FxOverlay from './components/hud/FxOverlay'
@@ -12,27 +10,19 @@ import Reminders from './components/hud/Reminders'
 import PenaltyOverlay from './components/hud/PenaltyOverlay'
 import StatusScreen from './screens/StatusScreen'
 import QuestsScreen from './screens/QuestsScreen'
-import HunterScreen from './screens/HunterScreen'
-import DungeonsScreen from './screens/DungeonsScreen'
-import BossScreen from './screens/BossScreen'
 import SinsScreen from './screens/SinsScreen'
-import RankScreen from './screens/RankScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import LojaScreen from './screens/LojaScreen'
 import ManageQuestsScreen from './screens/ManageQuestsScreen'
 
-type View = ScreenKey | 'boss' | 'rank' | 'profile' | 'loja' | 'manage'
+type View = ScreenKey | 'profile' | 'manage'
 
-const NAV_KEYS: ScreenKey[] = ['status', 'quests', 'hunter', 'dungeons', 'sins']
+const NAV_KEYS: ScreenKey[] = ['inicio', 'missoes', 'recompensas', 'pecados']
 
 export default function App() {
   const { x: px, y: py } = useParallax()
-  const [view, setView] = useState<View>('status')
-  const [boss, setBoss] = useState<{ reward: BossReward; name: string }>({
-    reward: { xp: 1200, coins: 300, crystals: 1, attrs: { forca: 2, vitalidade: 1 } },
-    name: 'Cavaleiro de Ferro',
-  })
-  const navKey: ScreenKey = NAV_KEYS.includes(view as ScreenKey) ? (view as ScreenKey) : 'status'
+  const [view, setView] = useState<View>('inicio')
+  const navKey: ScreenKey = NAV_KEYS.includes(view as ScreenKey) ? (view as ScreenKey) : 'inicio'
 
   // daily reset (covers fresh load and app left open past midnight)
   const checkDailyReset = useGame((s) => s.checkDailyReset)
@@ -42,19 +32,14 @@ export default function App() {
     return () => clearInterval(iv)
   }, [checkDailyReset])
 
-  const { level } = useLevelInfo()
   const corruption = useCorruption()
   const coins = useCoins()
-  const crystals = useCrystals()
-  const rank = rankForLevel(level)
-  const rd = RANK_DATA[rank]
   const corrupt = corruption > 65
-  const accent = corrupt ? '#ff2d5e' : rd.color
+  const accent = corrupt ? '#ff2d5e' : '#8b3bff'
   const audio = useAudio()
 
   return (
     <div className="h-full w-full bg-void">
-      {/* fullscreen root */}
       <div className="relative h-full w-full overflow-hidden bg-void">
         {/* GLOBAL ATMOSPHERE */}
         <Atmosphere px={px} py={py} accent={accent} corrupt={corrupt} hue={corrupt ? 345 : 268} />
@@ -66,58 +51,36 @@ export default function App() {
           transition={{ duration: 0.6 }}
         />
 
-        {/* top mini HUD */}
-        <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 pt-3">
+        {/* top mini HUD — coins + settings */}
+        <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-end gap-2 px-4 pt-3">
           <button
-            onClick={() => setView('rank')}
-            className="glass flex items-center gap-2 rounded-full px-3 py-1.5"
-            style={{ borderColor: `${rd.color}66` }}
+            onClick={() => setView('recompensas')}
+            className="glass font-num flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-bold"
+            title="Abrir Recompensas"
           >
-            <span className="font-display text-sm font-black" style={{ color: rd.color, textShadow: `0 0 12px ${rd.color}` }}>
-              {rank}
-            </span>
-            <span className="text-[10px] tracking-wide text-cold/70">RANK</span>
+            <span className="text-gold">⬡ {coins.toLocaleString('pt-BR')}</span>
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setView('loja')}
-              className="glass font-num flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold"
-              title="Abrir Loja de Recompensas"
-            >
-              <span className="text-gold">⬡ {coins.toLocaleString('pt-BR')}</span>
-              <span className="text-violet-soft">◆ {crystals}</span>
-            </button>
-            <button
-              onClick={() => audio.toggle()}
-              className="glass grid h-8 w-8 place-items-center rounded-full text-sm"
-              style={{ color: audio.enabled ? '#46e0ff' : '#565273' }}
-              title="Áudio ambiente"
-            >
-              {audio.enabled ? '🔊' : '🔈'}
-            </button>
-            <button onClick={() => setView('profile')} className="glass grid h-8 w-8 place-items-center rounded-full text-sm">
-              ⚙
-            </button>
-          </div>
+          <button
+            onClick={() => audio.toggle()}
+            className="glass grid h-8 w-8 place-items-center rounded-full text-sm"
+            style={{ color: audio.enabled ? '#46e0ff' : '#565273' }}
+            title="Áudio ambiente"
+          >
+            {audio.enabled ? '🔊' : '🔈'}
+          </button>
+          <button onClick={() => setView('profile')} className="glass grid h-8 w-8 place-items-center rounded-full text-sm">
+            ⚙
+          </button>
         </div>
 
         {/* SCREENS */}
         <AnimatePresence>
-          {view === 'status' && <StatusScreen key="status" px={px} py={py} />}
-          {view === 'quests' && <QuestsScreen key="quests" onManage={() => setView('manage')} />}
-          {view === 'hunter' && <HunterScreen key="hunter" px={px} py={py} onOpenLoja={() => setView('loja')} />}
-          {view === 'dungeons' && (
-            <DungeonsScreen
-              key="dungeons"
-              onEnter={(reward, name) => { setBoss({ reward, name }); setView('boss') }}
-            />
-          )}
-          {view === 'boss' && <BossScreen key="boss" px={px} py={py} reward={boss.reward} name={boss.name} onBack={() => setView('dungeons')} />}
-          {view === 'sins' && <SinsScreen key="sins" />}
-          {view === 'rank' && <RankScreen key="rank" />}
-          {view === 'profile' && <ProfileScreen key="profile" onNav={(k) => setView(k)} />}
-          {view === 'loja' && <LojaScreen key="loja" onBack={() => setView('hunter')} />}
-          {view === 'manage' && <ManageQuestsScreen key="manage" onBack={() => setView('quests')} />}
+          {view === 'inicio' && <StatusScreen key="inicio" px={px} py={py} />}
+          {view === 'missoes' && <QuestsScreen key="missoes" onManage={() => setView('manage')} />}
+          {view === 'recompensas' && <LojaScreen key="recompensas" onGoConfess={() => setView('pecados')} />}
+          {view === 'pecados' && <SinsScreen key="pecados" />}
+          {view === 'profile' && <ProfileScreen key="profile" />}
+          {view === 'manage' && <ManageQuestsScreen key="manage" onBack={() => setView('missoes')} />}
         </AnimatePresence>
 
         {/* cinematic FX + reminders + penalty report */}

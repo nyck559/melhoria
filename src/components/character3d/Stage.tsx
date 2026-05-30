@@ -7,7 +7,6 @@ import Aura from './fx/Aura'
 import Smoke from './fx/Smoke'
 import Ground from './fx/Ground'
 import Torches from './fx/Torch'
-import Gear from './gear/Gear'
 import Lighting from './rig/Lighting'
 import CameraRig from './rig/CameraRig'
 
@@ -44,7 +43,6 @@ export default function Stage({ signals }: { signals: CharSignals }) {
         <Suspense fallback={null}>
           <HunterBody />
         </Suspense>
-        <Gear />
         <Aura />
         <Smoke />
         <Ground />

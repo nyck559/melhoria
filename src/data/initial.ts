@@ -60,12 +60,12 @@ export const INITIAL_HABITS: Habit[] = [
 ]
 
 export const INITIAL_SINS: Sin[] = [
-  { id: 's-preguica', nome: 'Preguiça', icone: '🦥', descricao: 'Adiar o que importa', nivel: 1, corrupcao: 0, resistidoHoje: false },
-  { id: 's-gula',     nome: 'Gula',     icone: '🍖', descricao: 'Escapadas da dieta',  nivel: 1, corrupcao: 0, resistidoHoje: false },
-  { id: 's-luxuria',  nome: 'Luxúria',  icone: '🔥', descricao: 'Distração e impulso',  nivel: 1, corrupcao: 0, resistidoHoje: false },
-  { id: 's-ira',      nome: 'Ira',      icone: '⚡', descricao: 'Frustração descontrolada', nivel: 1, corrupcao: 0, resistidoHoje: false },
-  { id: 's-inveja',   nome: 'Inveja',   icone: '🌀', descricao: 'Comparação constante', nivel: 1, corrupcao: 0, resistidoHoje: false },
-  { id: 's-orgulho',  nome: 'Orgulho',  icone: '👁', descricao: 'Ego acima do progresso', nivel: 1, corrupcao: 0, resistidoHoje: false },
+  { id: 's-preguica', nome: 'Preguiça', icone: '🦥', descricao: 'Adiar o que importa', nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
+  { id: 's-gula',     nome: 'Gula',     icone: '🍖', descricao: 'Escapadas da dieta',  nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
+  { id: 's-luxuria',  nome: 'Luxúria',  icone: '🔥', descricao: 'Distração e impulso',  nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
+  { id: 's-ira',      nome: 'Ira',      icone: '⚡', descricao: 'Frustração descontrolada', nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
+  { id: 's-inveja',   nome: 'Inveja',   icone: '🌀', descricao: 'Comparação constante', nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
+  { id: 's-orgulho',  nome: 'Orgulho',  icone: '👁', descricao: 'Ego acima do progresso', nivel: 1, corrupcao: 0, resistidoHoje: false, caiuHoje: false },
 ]
 
 export const INITIAL_REWARDS: Reward[] = [

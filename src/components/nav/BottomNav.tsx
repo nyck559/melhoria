@@ -1,14 +1,13 @@
 import { motion } from 'framer-motion'
 import { useAudio } from '../../hooks/useAudio'
 
-export type ScreenKey = 'status' | 'quests' | 'hunter' | 'dungeons' | 'sins' | 'rank' | 'profile'
+export type ScreenKey = 'inicio' | 'missoes' | 'recompensas' | 'pecados'
 
 const ITEMS: { key: ScreenKey; icon: string; label: string }[] = [
-  { key: 'status', icon: '◈', label: 'STATUS' },
-  { key: 'quests', icon: '❒', label: 'QUESTS' },
-  { key: 'hunter', icon: '⛨', label: 'CAÇADOR' },
-  { key: 'dungeons', icon: '⌖', label: 'MASMORRAS' },
-  { key: 'sins', icon: '✷', label: 'PECADOS' },
+  { key: 'inicio', icon: '◈', label: 'INÍCIO' },
+  { key: 'missoes', icon: '❒', label: 'MISSÕES' },
+  { key: 'recompensas', icon: '🎁', label: 'RECOMPENSAS' },
+  { key: 'pecados', icon: '✷', label: 'PECADOS' },
 ]
 
 export default function BottomNav({
@@ -23,7 +22,7 @@ export default function BottomNav({
   const play = useAudio((s) => s.play)
   return (
     <nav
-      className="glass clip-holo absolute inset-x-3 bottom-3 z-30 grid grid-cols-5 gap-1 rounded-[20px] px-2 py-2"
+      className="glass clip-holo absolute inset-x-3 bottom-3 z-30 grid grid-cols-4 gap-1 rounded-[20px] px-2 py-2"
       style={{ boxShadow: `0 -4px 30px rgba(0,0,0,.6), 0 0 22px ${accent}33` }}
     >
       {/* holographic top line */}

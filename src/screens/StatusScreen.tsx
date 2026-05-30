@@ -1,99 +1,58 @@
-import { motion, type MotionValue } from 'framer-motion'
+import { type MotionValue } from 'framer-motion'
 import Screen from '../components/common/Screen'
-import { ScreenTitle, SectionLabel, AnimatedNumber, EnergyBar, Holo } from '../components/common/ui'
+import { ScreenTitle, AnimatedNumber, Holo, SectionLabel } from '../components/common/ui'
 import Hunter3D from '../components/character/Hunter3D'
-import RankBadge from '../components/hud/RankBadge'
-import { useGame, useLevelInfo, useCorruption, useDiscipline } from '../store/useGame'
-import { ATTRS, ATTR_ORDER, RANK_DATA, rankForLevel } from '../data/game'
+import DailyChart from '../components/common/DailyChart'
+import { useGame, useLevelInfo, useCorruption, useDiscipline, useCoins } from '../store/useGame'
+import { rankForLevel } from '../data/game'
+
+const ACCENT = '#8b3bff'
 
 export default function StatusScreen({ px, py }: { px: MotionValue<number>; py: MotionValue<number> }) {
-  const attrs = useGame((s) => s.attrs)
-  const { level, into, need } = useLevelInfo()
+  void px; void py
+  const habits = useGame((s) => s.habits)
+  const { level } = useLevelInfo()
   const corruption = useCorruption()
   const discipline = useDiscipline()
-  const equipped = useGame((s) => s.equipped)
-  const rank = rankForLevel(level)
-  const rd = RANK_DATA[rank]
+  const coins = useCoins()
+  const rank = rankForLevel(level) // drives only the 3D visual intensity (not shown)
+
+  const doneToday = habits.filter((h) => h.concluidoHoje).length
+  const bestStreak = habits.reduce((m, h) => Math.max(m, h.streak), 0)
 
   return (
     <Screen>
-      <ScreenTitle title="STATUS" sub="Sistema · Jogador" />
+      <ScreenTitle title="SUNG JINWOO" sub="Sua evolução diária" />
 
-      {/* HERO — character ~70% */}
-      <Holo className="relative mb-3 h-[400px] overflow-hidden scanlines" glow>
-        {/* inner aura floor */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-2/3"
-          style={{ background: `radial-gradient(120% 90% at 50% 120%, ${rd.color}55, transparent 60%)` }}
-        />
-        <Hunter3D rank={rank} accent={rd.color} corruption={corruption} discipline={discipline} equipped={equipped} className="absolute inset-0" />
-
-        {/* rank badge */}
-        <div className="absolute right-3 top-3">
-          <RankBadge rank={rank} color={rd.color} size={104} />
-        </div>
-
-        {/* name plate */}
-        <div className="absolute bottom-3 left-3">
-          <div className="font-display text-glow text-2xl font-extrabold">Jin Woo</div>
-          <div className="text-[11px] tracking-[2px] text-cold/80">
-            NÍVEL <b className="text-cyan">{level}</b> · {rd.name}
-          </div>
-        </div>
-
-        {/* power tag */}
-        <div className="absolute right-3 bottom-3 text-right">
-          <div className="text-[9px] tracking-[2px] text-violet-soft/70">CORRUPÇÃO</div>
-          <div className="font-num text-lg font-bold" style={{ color: corruption > 65 ? '#ff2d5e' : '#46e0ff' }}>
-            {corruption}%
-          </div>
+      {/* 3D hero */}
+      <Holo className="relative mb-3 h-[44vh] min-h-[360px] overflow-hidden scanlines" glow>
+        <div className="absolute inset-0" style={{ background: `radial-gradient(110% 80% at 50% 115%, ${ACCENT}44, transparent 60%)` }} />
+        <Hunter3D rank={rank} accent={ACCENT} corruption={corruption} discipline={discipline} className="absolute inset-0" />
+        <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] tracking-[2px] text-violet-soft/50">
+          ✦ TOQUE · ARRASTE PARA GIRAR
         </div>
       </Holo>
 
-      {/* XP bar */}
-      <Holo className="mb-1 px-3 py-3">
-        <div className="font-num mb-1.5 flex justify-between text-[11px] font-semibold tracking-[2px] text-violet-soft/70">
-          <span>EXP</span>
-          <span>
-            {into.toLocaleString('pt-BR')} / {need.toLocaleString('pt-BR')}
-          </span>
-        </div>
-        <EnergyBar value={(into / need) * 100} c1={rd.color} c2="#46e0ff" height={10} />
-      </Holo>
-
-      {/* ATTRIBUTES */}
-      <SectionLabel right={<span className="text-[9px] tracking-wide text-violet-soft/50">HOLO · 7 atributos</span>}>
-        ATRIBUTOS
-      </SectionLabel>
-      <div className="grid grid-cols-2 gap-2.5">
-        {ATTR_ORDER.map((key, i) => {
-          const a = ATTRS[key]
-          const v = attrs[key]
-          return (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              whileHover={{ scale: 1.04, boxShadow: `0 0 22px ${a.color}66` }}
-              className="glass relative flex items-center gap-2.5 overflow-hidden rounded-2xl px-3 py-2.5"
-            >
-              <span className="absolute left-0 top-0 h-full w-[3px]" style={{ background: a.color, boxShadow: `0 0 12px ${a.color}` }} />
-              <span
-                className="grid h-9 w-9 place-items-center rounded-lg text-base"
-                style={{ background: `${a.color}22`, border: `1px solid ${a.color}55`, color: a.color }}
-              >
-                {a.icon}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-[9px] uppercase tracking-wide text-violet-soft/60">{a.label}</div>
-                <AnimatedNumber value={v} className="font-display text-lg font-extrabold" />
-                <EnergyBar value={Math.min(100, v)} c1={a.color} c2={a.color} height={4} className="mt-1" />
-              </div>
-            </motion.div>
-          )
-        })}
+      {/* today's real-growth summary */}
+      <div className="mb-3 grid grid-cols-3 gap-2.5">
+        {[
+          { label: 'MISSÕES HOJE', value: doneToday, suffix: `/${habits.length}`, color: '#43ffb0' },
+          { label: 'MOEDAS', value: coins, suffix: '', color: '#ffcb57' },
+          { label: 'MELHOR OFENSIVA', value: bestStreak, suffix: 'd', color: '#46e0ff' },
+        ].map((s) => (
+          <div key={s.label} className="glass rounded-2xl px-2 py-3 text-center">
+            <div className="text-[8px] tracking-[1px] text-violet-soft/55">{s.label}</div>
+            <div className="font-display text-2xl font-black" style={{ color: s.color }}>
+              <AnimatedNumber value={s.value} />
+              <span className="text-[11px] font-semibold text-violet-soft/50">{s.suffix}</span>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* daily evolution line chart */}
+      <SectionLabel>GRÁFICO</SectionLabel>
+      <DailyChart days={7} accent={ACCENT} />
     </Screen>
   )
 }
