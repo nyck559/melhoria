@@ -34,7 +34,7 @@ export default function CameraRig() {
     zoom.current += (0 - zoom.current) * Math.min(1, dt * 1.6)
     shake.current += (0 - shake.current) * Math.min(1, dt * 4)
 
-    const baseZ = 4 - zoom.current * 0.9
+    const baseZ = 4.6 - zoom.current * 0.9
     const baseY = 0.2 + Math.sin(time * 0.4) * 0.05
     const sx = (Math.random() - 0.5) * shake.current * 0.18
     const sy = (Math.random() - 0.5) * shake.current * 0.18

@@ -1,27 +1,26 @@
 import { useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { Suspense, useRef } from 'react'
 import * as THREE from 'three'
 import { CharCtx, type CharSignals } from './context'
 import HunterBody from './parts/HunterBody'
 import Aura from './fx/Aura'
 import Smoke from './fx/Smoke'
 import Ground from './fx/Ground'
+import Torches from './fx/Torch'
 import Gear from './gear/Gear'
 import Lighting from './rig/Lighting'
 import CameraRig from './rig/CameraRig'
 
 /**
- * Everything that lives *inside* the R3F Canvas. Provides the shared signal
- * context and owns the drag/auto turntable that rotates the whole character.
+ * Everything inside the R3F Canvas. Provides the shared signal context and
+ * owns the drag/auto turntable that spins the character group.
  */
 export default function Stage({ signals }: { signals: CharSignals }) {
   const turntable = useRef<THREE.Group>(null)
   const { spin, pulse } = signals
 
   useFrame((_, dt) => {
-    // tap pulse decay
     pulse.current += (0 - pulse.current) * Math.min(1, dt * 4)
-    // turntable: auto-rotate when idle, follow drag target while dragging
     if (spin.current.dragging) {
       spin.current.angle += (spin.current.target - spin.current.angle) * Math.min(1, dt * 12)
     } else {
@@ -34,8 +33,17 @@ export default function Stage({ signals }: { signals: CharSignals }) {
     <CharCtx.Provider value={signals}>
       <Lighting />
       <CameraRig />
+
+      {/* Torches are outside the turntable so they stay fixed in world space */}
+      <Suspense fallback={null}>
+        <Torches />
+      </Suspense>
+
       <group ref={turntable}>
-        <HunterBody />
+        {/* Character body loads in its own Suspense bubble */}
+        <Suspense fallback={null}>
+          <HunterBody />
+        </Suspense>
         <Gear />
         <Aura />
         <Smoke />

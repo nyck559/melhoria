@@ -113,7 +113,7 @@ export default function Hunter3D({
     >
       <Canvas
         dpr={[1, 1.6]}
-        camera={{ position: [0, 0.2, 4], fov: 32 }}
+        camera={{ position: [0, 0.15, 4.6], fov: 36 }}
         gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
         onCreated={({ scene }) => {
           scene.fog = new THREE.FogExp2(0x06030f, 0.16)
