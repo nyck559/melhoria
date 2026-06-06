@@ -41,6 +41,14 @@ export interface Income {
   data: string // ISO timestamp
 }
 
+// ---- Cashing coins out for real money ----
+export interface Exchange {
+  id: string
+  coins: number
+  valor: number // R$ received
+  data: string // ISO timestamp
+}
+
 // ---- Sins (tracked for the dashboards) ----
 export interface Sin {
   id: string
@@ -69,6 +77,7 @@ export interface GameState {
   rewards: Reward[]
   redemptions: Redemption[]
   incomes: Income[]
+  exchanges: Exchange[]
   sins: Sin[]
   daily: Record<string, DayRecord> // 'YYYY-MM-DD' → totals
   sinDaily: Record<string, Record<string, SinDay>> // date → sinId → counts
@@ -85,6 +94,7 @@ export interface GameState {
   removeReward: (id: string) => void
   addIncome: (i: Omit<Income, 'id' | 'data'>) => void
   removeIncome: (id: string) => void
+  exchangeCoins: (coins: number) => void
   logSin: (id: string, kind: 'resisted' | 'fell') => void
   setSinLevel: (id: string, corrupcao: number) => void
   checkDailyReset: () => void

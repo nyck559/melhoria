@@ -25,6 +25,7 @@ export default function GrowthScreen() {
   const rewards = useGame((s) => s.rewards)
   const redemptions = useGame((s) => s.redemptions)
   const incomes = useGame((s) => s.incomes)
+  const exchanges = useGame((s) => s.exchanges)
   const coins = useGame((s) => s.coins)
   const logSin = useGame((s) => s.logSin)
   const addIncome = useGame((s) => s.addIncome)
@@ -50,7 +51,7 @@ export default function GrowthScreen() {
       {tab === 'geral' && <Geral days={days} labels={labels} daily={daily} />}
       {tab === 'pecados' && <Pecados days={days} labels={labels} sins={sins} sinDaily={sinDaily} onLog={logSin} />}
       {tab === 'financas' && (
-        <Financas days={days} labels={labels} daily={daily} coins={coins} rewards={rewards} redemptions={redemptions} incomes={incomes} onAddIncome={addIncome} onRemoveIncome={removeIncome} />
+        <Financas days={days} labels={labels} daily={daily} coins={coins} rewards={rewards} redemptions={redemptions} incomes={incomes} exchanges={exchanges} onAddIncome={addIncome} onRemoveIncome={removeIncome} />
       )}
     </Screen>
   )
@@ -157,6 +158,7 @@ function Financas({
   rewards,
   redemptions,
   incomes,
+  exchanges,
   onAddIncome,
   onRemoveIncome,
 }: {
@@ -167,6 +169,7 @@ function Financas({
   rewards: { id: string; categoria: RewardCategory }[]
   redemptions: { rewardId: string; custo: number }[]
   incomes: Income[]
+  exchanges: { coins: number; valor: number }[]
   onAddIncome: (i: { tipo: Income['tipo']; valor: number; desc?: string }) => void
   onRemoveIncome: (id: string) => void
 }) {
@@ -186,12 +189,17 @@ function Financas({
     return Math.round(bal)
   })
 
+  // total cashed out (coins → R$)
+  const cashedCoins = exchanges.reduce((a, e) => a + e.coins, 0)
+  const cashedReais = exchanges.reduce((a, e) => a + e.valor, 0)
+
   // spend grouped by category
   const byCat: Partial<Record<RewardCategory, number>> = {}
   for (const h of redemptions) {
     const cat = rewards.find((r) => r.id === h.rewardId)?.categoria ?? 'outro'
     byCat[cat] = (byCat[cat] ?? 0) + h.custo
   }
+  if (cashedCoins > 0) byCat.dinheiro = (byCat.dinheiro ?? 0) + cashedCoins
   const donutData = (Object.keys(byCat) as RewardCategory[])
     .map((c) => ({ label: REWARD_CATEGORIES[c].label, value: byCat[c] ?? 0, color: REWARD_CATEGORIES[c].color }))
     .sort((a, b) => b.value - a.value)
@@ -226,6 +234,11 @@ function Financas({
         <div className="mt-2 text-[11px] text-muted">
           Cada tarefa = {COINS_PER_TASK} moedas = <b className="text-text">{brl(COINS_PER_TASK * valorMoeda)}</b>. A moeda sobe 5% a cada R$1.000 faturados.
         </div>
+        {cashedCoins > 0 && (
+          <div className="mt-2 rounded-xl bg-surface2 p-2.5 text-[12px]">
+            💵 Já trocado: <b className="text-good">{brl(cashedReais)}</b> <span className="text-muted">({cashedCoins.toLocaleString('pt-BR')} moedas)</span>
+          </div>
+        )}
       </div>
 
       {incomes.length > 0 && (

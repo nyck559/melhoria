@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GameState, Reward, Task } from '../types'
 import { INITIAL_REWARDS, INITIAL_SINS, INITIAL_TASKS } from '../data/initial'
-import { INCOME_TIPOS } from '../data/game'
+import { INCOME_TIPOS, coinValue } from '../data/game'
 
 export const isWeekend = (d = new Date()) => d.getDay() === 0 || d.getDay() === 6
 
@@ -21,6 +21,7 @@ export const useGame = create<GameState>()(
       rewards: INITIAL_REWARDS,
       redemptions: [],
       incomes: [],
+      exchanges: [],
       sins: INITIAL_SINS,
       daily: {},
       sinDaily: {},
@@ -92,6 +93,22 @@ export const useGame = create<GameState>()(
       },
       removeIncome: (id) => set((s) => ({ incomes: s.incomes.filter((x) => x.id !== id) })),
 
+      /* ---------------- cash coins out for real money ---------------- */
+      exchangeCoins: (coins) => {
+        const s = get()
+        const c = Math.floor(coins)
+        if (c <= 0 || c > s.coins) return
+        const faturamento = s.incomes.reduce((a, i) => a + i.valor, 0)
+        const valor = c * coinValue(faturamento)
+        const today = todayStr()
+        const day = s.daily[today] ?? { done: 0, earned: 0, spent: 0 }
+        set({
+          coins: s.coins - c,
+          exchanges: [{ id: uid(), coins: c, valor, data: new Date().toISOString() }, ...s.exchanges].slice(0, 300),
+          daily: { ...s.daily, [today]: { ...day, spent: day.spent + c } },
+        })
+      },
+
       /* ---------------- sins ---------------- */
       logSin: (id, kind) => {
         const s = get()
@@ -132,6 +149,7 @@ export const useGame = create<GameState>()(
         rewards: s.rewards,
         redemptions: s.redemptions,
         incomes: s.incomes,
+        exchanges: s.exchanges,
         sins: s.sins,
         daily: s.daily,
         sinDaily: s.sinDaily,

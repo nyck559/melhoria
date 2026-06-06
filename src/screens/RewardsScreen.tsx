@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Screen, PageTitle, CoinPill, BlueButton, SectionTitle } from '../components/kit'
 import RewardEditor from '../components/RewardEditor'
+import ExchangeCard from '../components/ExchangeCard'
 import { useGame, isWeekend } from '../store/useGame'
 import { REWARD_CATEGORIES } from '../data/game'
 import type { Reward } from '../types'
@@ -54,6 +55,8 @@ export default function RewardsScreen() {
   return (
     <Screen>
       <PageTitle title="Recompensas" sub="Troque suas moedas" right={<CoinPill value={coins} />} />
+
+      <ExchangeCard />
 
       <div className="card mb-3 flex items-center gap-3 p-3" style={{ borderColor: weekend ? 'rgba(95,208,138,.4)' : 'rgba(91,156,255,.3)' }}>
         <span className="text-2xl">{weekend ? '🎉' : '📅'}</span>
