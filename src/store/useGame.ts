@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GameState, Reward, Task } from '../types'
 import { INITIAL_REWARDS, INITIAL_SINS, INITIAL_TASKS } from '../data/initial'
+import { INCOME_TIPOS } from '../data/game'
+
+export const isWeekend = (d = new Date()) => d.getDay() === 0 || d.getDay() === 6
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 const todayStr = () => {
@@ -17,6 +20,7 @@ export const useGame = create<GameState>()(
       doneToday: [],
       rewards: INITIAL_REWARDS,
       redemptions: [],
+      incomes: [],
       sins: INITIAL_SINS,
       daily: {},
       sinDaily: {},
@@ -53,6 +57,7 @@ export const useGame = create<GameState>()(
       /* ---------------- rewards ---------------- */
       redeemReward: (id) => {
         const s = get()
+        if (!isWeekend()) return // recompensas só nos fins de semana
         const r = s.rewards.find((x) => x.id === id)
         if (!r || s.coins < r.custo) return
         if (r.limitePorDia && r.resgatadosHoje >= r.limitePorDia) return
@@ -72,6 +77,20 @@ export const useGame = create<GameState>()(
       addReward: (r) => set((s) => ({ rewards: [...s.rewards, { ...r, id: uid(), resgatadosHoje: 0 } as Reward] })),
       updateReward: (id, patch) => set((s) => ({ rewards: s.rewards.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeReward: (id) => set((s) => ({ rewards: s.rewards.filter((x) => x.id !== id) })),
+
+      /* ---------------- agency income ---------------- */
+      addIncome: (i) => {
+        const s = get()
+        const bonus = INCOME_TIPOS[i.tipo].coins
+        const today = todayStr()
+        const day = s.daily[today] ?? { done: 0, earned: 0, spent: 0 }
+        set({
+          incomes: [{ ...i, id: uid(), data: new Date().toISOString() }, ...s.incomes].slice(0, 500),
+          coins: s.coins + bonus,
+          daily: { ...s.daily, [today]: { ...day, earned: day.earned + bonus } },
+        })
+      },
+      removeIncome: (id) => set((s) => ({ incomes: s.incomes.filter((x) => x.id !== id) })),
 
       /* ---------------- sins ---------------- */
       logSin: (id, kind) => {
@@ -105,13 +124,14 @@ export const useGame = create<GameState>()(
       toggleReminders: () => set((s) => ({ reminders: !s.reminders })),
     }),
     {
-      name: 'crescimento-v1',
+      name: 'crescimento-v2',
       partialize: (s) => ({
         coins: s.coins,
         tasks: s.tasks,
         doneToday: s.doneToday,
         rewards: s.rewards,
         redemptions: s.redemptions,
+        incomes: s.incomes,
         sins: s.sins,
         daily: s.daily,
         sinDaily: s.sinDaily,
@@ -134,6 +154,9 @@ export function tasksForDay(tasks: Task[], weekday = new Date().getDay()): Task[
 }
 
 export const useCoins = () => useGame((s) => s.coins)
+
+/** Accumulated agency revenue (drives coin value). */
+export const useFaturamento = () => useGame((s) => s.incomes.reduce((a, i) => a + i.valor, 0))
 
 /** Last `days` day-keys with labels, oldest → newest. */
 export function lastDays(days: number): { date: string; label: string; weekday: number }[] {

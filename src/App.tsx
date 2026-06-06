@@ -5,6 +5,7 @@ import BottomNav, { type ScreenKey } from './components/nav/BottomNav'
 import GrowthScreen from './screens/GrowthScreen'
 import ChecklistScreen from './screens/ChecklistScreen'
 import RewardsScreen from './screens/RewardsScreen'
+import CalendarScreen from './screens/CalendarScreen'
 
 export default function App() {
   const [view, setView] = useState<ScreenKey>('crescimento')
@@ -22,6 +23,7 @@ export default function App() {
         {view === 'crescimento' && <GrowthScreen key="crescimento" />}
         {view === 'checklist' && <ChecklistScreen key="checklist" />}
         {view === 'recompensas' && <RewardsScreen key="recompensas" />}
+        {view === 'calendario' && <CalendarScreen key="calendario" />}
       </AnimatePresence>
 
       <BottomNav active={view} onChange={setView} />

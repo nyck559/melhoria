@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Screen, PageTitle, CoinPill, SegTabs, Stat, SectionTitle } from '../components/kit'
+import { Screen, PageTitle, CoinPill, SegTabs, Stat, SectionTitle, BlueButton } from '../components/kit'
 import { LineChart, BarChart, GroupedBars, Donut, Radar } from '../components/charts'
 import { useGame, lastDays, localToday } from '../store/useGame'
-import { BLUE, BLUE_DEEP, GOOD, BAD, REWARD_CATEGORIES } from '../data/game'
-import type { RewardCategory } from '../types'
+import { BLUE, BLUE_DEEP, GOOD, BAD, REWARD_CATEGORIES, INCOME_TIPOS, coinValue, brl, COINS_PER_TASK } from '../data/game'
+import IncomeEditor from '../components/IncomeEditor'
+import type { Income, RewardCategory } from '../types'
 
 type Tab = 'geral' | 'pecados' | 'financas'
 type Period = 7 | 14 | 30
@@ -23,8 +24,11 @@ export default function GrowthScreen() {
   const sins = useGame((s) => s.sins)
   const rewards = useGame((s) => s.rewards)
   const redemptions = useGame((s) => s.redemptions)
+  const incomes = useGame((s) => s.incomes)
   const coins = useGame((s) => s.coins)
   const logSin = useGame((s) => s.logSin)
+  const addIncome = useGame((s) => s.addIncome)
+  const removeIncome = useGame((s) => s.removeIncome)
 
   const days = lastDays(period)
   const labels = thin(days.map((d) => d.label))
@@ -45,7 +49,9 @@ export default function GrowthScreen() {
 
       {tab === 'geral' && <Geral days={days} labels={labels} daily={daily} />}
       {tab === 'pecados' && <Pecados days={days} labels={labels} sins={sins} sinDaily={sinDaily} onLog={logSin} />}
-      {tab === 'financas' && <Financas days={days} labels={labels} daily={daily} coins={coins} rewards={rewards} redemptions={redemptions} />}
+      {tab === 'financas' && (
+        <Financas days={days} labels={labels} daily={daily} coins={coins} rewards={rewards} redemptions={redemptions} incomes={incomes} onAddIncome={addIncome} onRemoveIncome={removeIncome} />
+      )}
     </Screen>
   )
 }
@@ -150,6 +156,9 @@ function Financas({
   coins,
   rewards,
   redemptions,
+  incomes,
+  onAddIncome,
+  onRemoveIncome,
 }: {
   days: ReturnType<typeof lastDays>
   labels: string[]
@@ -157,7 +166,14 @@ function Financas({
   coins: number
   rewards: { id: string; categoria: RewardCategory }[]
   redemptions: { rewardId: string; custo: number }[]
+  incomes: Income[]
+  onAddIncome: (i: { tipo: Income['tipo']; valor: number; desc?: string }) => void
+  onRemoveIncome: (id: string) => void
 }) {
+  const [incOpen, setIncOpen] = useState(false)
+  const faturamento = incomes.reduce((a, i) => a + i.valor, 0)
+  const valorMoeda = coinValue(faturamento)
+
   const earned = days.map((d) => daily[d.date]?.earned ?? 0)
   const spent = days.map((d) => daily[d.date]?.spent ?? 0)
   const totalEarned = earned.reduce((a, b) => a + b, 0)
@@ -180,9 +196,62 @@ function Financas({
     .map((c) => ({ label: REWARD_CATEGORIES[c].label, value: byCat[c] ?? 0, color: REWARD_CATEGORIES[c].color }))
     .sort((a, b) => b.value - a.value)
 
+  // cumulative agency revenue across the period (by day)
+  const revByDay: Record<string, number> = {}
+  for (const inc of incomes) revByDay[inc.data.slice(0, 10)] = (revByDay[inc.data.slice(0, 10)] ?? 0) + inc.valor
+  let revAcc = faturamento - days.reduce((a, d) => a + (revByDay[d.date] ?? 0), 0)
+  const revSeries = days.map((d) => { revAcc += revByDay[d.date] ?? 0; return Math.round(revAcc) })
+
   return (
     <>
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      {/* AGENCY REVENUE → COIN VALUE */}
+      <div className="card mt-4 p-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-[11px] uppercase tracking-wide text-muted">Faturamento da agência</div>
+            <div className="mt-0.5 text-[24px] font-bold text-good">{brl(faturamento)}</div>
+          </div>
+          <BlueButton onClick={() => setIncOpen(true)} className="!px-3 !py-2 !text-[12px]">+ Entrada</BlueButton>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="card-2 rounded-xl p-2.5">
+            <div className="text-[10px] uppercase text-muted">Valor da moeda</div>
+            <div className="text-[16px] font-bold text-blue">{brl(valorMoeda)}</div>
+          </div>
+          <div className="card-2 rounded-xl p-2.5">
+            <div className="text-[10px] uppercase text-muted">Suas moedas valem</div>
+            <div className="text-[16px] font-bold text-blue">{brl(coins * valorMoeda)}</div>
+          </div>
+        </div>
+        <div className="mt-2 text-[11px] text-muted">
+          Cada tarefa = {COINS_PER_TASK} moedas = <b className="text-text">{brl(COINS_PER_TASK * valorMoeda)}</b>. A moeda sobe 5% a cada R$1.000 faturados.
+        </div>
+      </div>
+
+      {incomes.length > 0 && (
+        <>
+          <SectionTitle>Faturamento acumulado</SectionTitle>
+          <div className="card p-3"><LineChart labels={labels} series={[{ name: 'rev', color: GOOD, values: revSeries }]} /></div>
+
+          <SectionTitle>Entradas recentes</SectionTitle>
+          <div className="flex flex-col gap-1.5">
+            {incomes.slice(0, 8).map((i) => (
+              <div key={i.id} className="card flex items-center gap-3 px-3 py-2">
+                <span className="text-[15px]">{INCOME_TIPOS[i.tipo].icon}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-medium">{i.desc || INCOME_TIPOS[i.tipo].label}</div>
+                  <div className="text-[10px] text-muted">{INCOME_TIPOS[i.tipo].label} · {new Date(i.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</div>
+                </div>
+                <span className="text-[13px] font-semibold text-good">{brl(i.valor)}</span>
+                <button onClick={() => onRemoveIncome(i.id)} className="px-1 text-[13px] text-muted">✕</button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <SectionTitle>Moedas</SectionTitle>
+      <div className="grid grid-cols-3 gap-2">
         <Stat label="Saldo" value={coins.toLocaleString('pt-BR')} accent={BLUE} />
         <Stat label="Ganho" value={totalEarned} accent={GOOD} />
         <Stat label="Gasto" value={totalSpent} accent={BAD} />
@@ -204,6 +273,8 @@ function Financas({
       <div className="card p-4">
         {donutData.length ? <Donut data={donutData} centerValue={String(totalSpent)} centerLabel="gasto" /> : <div className="py-4 text-center text-[13px] text-muted">Nenhuma recompensa resgatada ainda.</div>}
       </div>
+
+      <IncomeEditor open={incOpen} onClose={() => setIncOpen(false)} onSave={(i) => { onAddIncome(i); setIncOpen(false) }} />
     </>
   )
 }

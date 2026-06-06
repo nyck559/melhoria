@@ -4,7 +4,7 @@ import type { Task } from '../types'
 import { WEEKDAYS } from '../data/game'
 import { BlueButton } from './kit'
 
-const EMPTY = { nome: '', icone: '✅', moedas: 10, dias: [1, 2, 3, 4, 5] as number[] }
+const EMPTY = { nome: '', icone: '✅', moedas: 5, dias: [1, 2, 3, 4, 5] as number[] }
 
 export default function TaskEditor({
   open,

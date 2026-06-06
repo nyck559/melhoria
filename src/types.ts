@@ -30,6 +30,17 @@ export interface Redemption {
   data: string // ISO timestamp
 }
 
+// ---- Agency income (drives revenue + coin value) ----
+export type IncomeTipo = 'fechado' | 'renovado' | 'meta' | 'outro'
+
+export interface Income {
+  id: string
+  tipo: IncomeTipo
+  valor: number // R$
+  desc?: string
+  data: string // ISO timestamp
+}
+
 // ---- Sins (tracked for the dashboards) ----
 export interface Sin {
   id: string
@@ -57,6 +68,7 @@ export interface GameState {
   doneToday: string[] // task ids completed today
   rewards: Reward[]
   redemptions: Redemption[]
+  incomes: Income[]
   sins: Sin[]
   daily: Record<string, DayRecord> // 'YYYY-MM-DD' → totals
   sinDaily: Record<string, Record<string, SinDay>> // date → sinId → counts
@@ -71,6 +83,8 @@ export interface GameState {
   addReward: (r: Omit<Reward, 'id' | 'resgatadosHoje'>) => void
   updateReward: (id: string, patch: Partial<Reward>) => void
   removeReward: (id: string) => void
+  addIncome: (i: Omit<Income, 'id' | 'data'>) => void
+  removeIncome: (id: string) => void
   logSin: (id: string, kind: 'resisted' | 'fell') => void
   setSinLevel: (id: string, corrupcao: number) => void
   checkDailyReset: () => void

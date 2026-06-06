@@ -2,14 +2,15 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Screen, PageTitle, CoinPill, BlueButton, SectionTitle } from '../components/kit'
 import RewardEditor from '../components/RewardEditor'
-import { useGame } from '../store/useGame'
+import { useGame, isWeekend } from '../store/useGame'
 import { REWARD_CATEGORIES } from '../data/game'
 import type { Reward } from '../types'
 
-function RewardRow({ r, coins, onRedeem, onEdit }: { r: Reward; coins: number; onRedeem: () => void; onEdit: () => void }) {
+function RewardRow({ r, coins, weekend, onRedeem, onEdit }: { r: Reward; coins: number; weekend: boolean; onRedeem: () => void; onEdit: () => void }) {
   const cat = REWARD_CATEGORIES[r.categoria]
   const limitHit = !!r.limitePorDia && r.resgatadosHoje >= r.limitePorDia
   const afford = coins >= r.custo
+  const canRedeem = afford && !limitHit && weekend
   const pct = Math.min(100, (coins / r.custo) * 100)
   return (
     <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="card p-3">
@@ -22,8 +23,8 @@ function RewardRow({ r, coins, onRedeem, onEdit }: { r: Reward; coins: number; o
           </div>
           <div className="text-[12px] font-semibold text-blue">🪙 {r.custo.toLocaleString('pt-BR')}{r.limitePorDia ? ` · ${r.resgatadosHoje}/${r.limitePorDia} hoje` : ''}</div>
         </div>
-        <BlueButton disabled={!afford || limitHit} onClick={onRedeem} className="!px-3 !py-2 !text-[12px]">
-          {limitHit ? 'Limite' : afford ? 'Resgatar' : 'Faltam ' + (r.custo - coins)}
+        <BlueButton disabled={!canRedeem} onClick={onRedeem} className="!px-3 !py-2 !text-[12px]">
+          {limitHit ? 'Limite' : !afford ? 'Faltam ' + (r.custo - coins) : !weekend ? '🔒 FDS' : 'Resgatar'}
         </BlueButton>
       </div>
       {!afford && (
@@ -46,29 +47,34 @@ export default function RewardsScreen() {
 
   const [editing, setEditing] = useState<Reward | null>(null)
   const [open, setOpen] = useState(false)
+  const weekend = isWeekend()
 
-  const treats = rewards.filter((r) => r.categoria !== 'dinheiro')
-  const money = rewards.filter((r) => r.categoria === 'dinheiro').sort((a, b) => a.custo - b.custo)
-
-  const renderRow = (r: Reward) => (
-    <RewardRow key={r.id} r={r} coins={coins} onRedeem={() => redeemReward(r.id)} onEdit={() => { setEditing(r); setOpen(true) }} />
-  )
+  const list = [...rewards].sort((a, b) => a.custo - b.custo)
 
   return (
     <Screen>
       <PageTitle title="Recompensas" sub="Troque suas moedas" right={<CoinPill value={coins} />} />
 
+      <div className="card mb-3 flex items-center gap-3 p-3" style={{ borderColor: weekend ? 'rgba(95,208,138,.4)' : 'rgba(91,156,255,.3)' }}>
+        <span className="text-2xl">{weekend ? '🎉' : '📅'}</span>
+        <div className="flex-1">
+          <div className="text-[13px] font-semibold" style={{ color: weekend ? 'var(--blue)' : 'var(--text)' }}>
+            {weekend ? 'Fim de semana — recompensas liberadas!' : 'Recompensas só nos fins de semana'}
+          </div>
+          <div className="text-[11px] text-muted">{weekend ? 'Aproveite o que você conquistou.' : 'Continue acumulando moedas durante a semana.'}</div>
+        </div>
+      </div>
+
       <div className="mb-1 flex items-center justify-between">
-        <h2 className="text-[12px] font-semibold uppercase tracking-wider text-muted">Lazer & descanso</h2>
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider text-muted">Recompensas</h2>
         <BlueButton variant="ghost" onClick={() => { setEditing(null); setOpen(true) }} className="!px-3 !py-1.5 !text-[12px]">+ Nova</BlueButton>
       </div>
       <div className="flex flex-col gap-2">
-        <AnimatePresence initial={false}>{treats.map(renderRow)}</AnimatePresence>
-      </div>
-
-      <SectionTitle>Dinheiro para gastar</SectionTitle>
-      <div className="flex flex-col gap-2">
-        <AnimatePresence initial={false}>{money.map(renderRow)}</AnimatePresence>
+        <AnimatePresence initial={false}>
+          {list.map((r) => (
+            <RewardRow key={r.id} r={r} coins={coins} weekend={weekend} onRedeem={() => redeemReward(r.id)} onEdit={() => { setEditing(r); setOpen(true) }} />
+          ))}
+        </AnimatePresence>
       </div>
 
       {redemptions.length > 0 && (
