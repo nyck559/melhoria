@@ -4,89 +4,40 @@
 
 :root {
   color-scheme: dark;
+  /* Claude-like warm dark theme with blue accents */
+  --bg: #1c1b19;
+  --surface: #262624;
+  --surface-2: #2f2e2b;
+  --border: rgba(255, 255, 255, 0.09);
+  --text: #ecebe4;
+  --muted: #a09d94;
+  --blue: #5b9cff;
+  --blue-deep: #3b82f6;
+  --blue-soft: #8fbcff;
 }
 
-* { -webkit-tap-highlight-color: transparent; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #050308;
-  color: #eef0ff;
-  font-family: 'Chakra Petch', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
 @layer utilities {
-  .font-display { font-family: 'Orbitron', sans-serif; }
-  .font-num { font-family: 'Rajdhani', sans-serif; }
-
-  .text-glow { text-shadow: 0 0 18px rgba(139,59,255,.7), 0 0 40px rgba(106,0,255,.4); }
-  .text-glow-cyan { text-shadow: 0 0 18px rgba(70,224,255,.8); }
-  .text-glow-corrupt { text-shadow: 0 0 18px rgba(255,45,94,.8); }
-
-  /* solid translucent surfaces (no backdrop-filter — much faster on mobile) */
-  .glass {
-    background: linear-gradient(160deg, rgba(28,18,54,.92), rgba(10,6,20,.92));
-    border: 1px solid rgba(139,92,255,.22);
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
   }
-
-  .clip-holo {
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  }
-}
-
-/* ---------------- Holographic frame ---------------- */
-.holo {
-  position: relative;
-  background: linear-gradient(160deg, rgba(26,17,52,.9), rgba(8,5,16,.94));
-  border: 1px solid rgba(139,92,255,.28);
-  box-shadow: 0 18px 50px rgba(0,0,0,.6), inset 0 0 30px rgba(106,0,255,.08);
-}
-.holo::before,
-.holo::after {
-  content: '';
-  position: absolute;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(139,92,255,.9);
-  filter: drop-shadow(0 0 6px rgba(139,92,255,.9));
-  pointer-events: none;
-}
-.holo::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-.holo::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
-
-.holo-corner-tr,
-.holo-corner-bl {
-  position: absolute;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(70,224,255,.7);
-  filter: drop-shadow(0 0 6px rgba(70,224,255,.7));
-  pointer-events: none;
-}
-.holo-corner-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
-.holo-corner-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
-
-/* shimmer/scanlines kept as STATIC (no continuous animation — perf) */
-.shimmer { position: relative; overflow: hidden; }
-.scanlines::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
-  pointer-events: none;
-}
-
-/* energy bar fill (no shine animation) */
-.energy-bar { position: relative; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.06); box-shadow: inset 0 0 8px rgba(0,0,0,.6); }
-.energy-bar > i {
-  position: absolute; inset: 0; border-radius: 99px;
-  background: linear-gradient(90deg, var(--c1, #6a00ff), var(--c2, #46e0ff));
-  box-shadow: 0 0 14px var(--c1, #6a00ff);
-}
-
-/* corruption screen tint */
-.corrupt-vignette {
-  position: fixed; inset: 0; pointer-events: none; z-index: 40;
-  box-shadow: inset 0 0 140px rgba(255,45,94,.0);
-  transition: box-shadow .6s ease;
+  .card-2 { background: var(--surface-2); }
+  .hairline { border: 1px solid var(--border); }
+  .text-muted { color: var(--muted); }
+  .text-blue { color: var(--blue); }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }
