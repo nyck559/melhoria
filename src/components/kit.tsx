@@ -4,15 +4,9 @@ import type { ReactNode } from 'react'
 /** Scrollable screen container with safe padding for the bottom nav. */
 export function Screen({ children }: { children: ReactNode }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="no-scrollbar absolute inset-0 overflow-y-auto px-4 pb-28 pt-14"
-    >
+    <div className="screen-enter no-scrollbar absolute inset-0 overflow-y-auto px-4 pb-28 pt-14">
       {children}
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">SISTEMA</string>
-    <string name="title_activity_main">SISTEMA</string>
+    <string name="app_name">Crescimento</string>
+    <string name="title_activity_main">Crescimento</string>
     <string name="package_name">com.sololeveling.lifesystem</string>
     <string name="custom_url_scheme">com.sololeveling.lifesystem</string>
 </resources>

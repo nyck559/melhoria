@@ -1,6 +1,6 @@
-import { AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useGame } from './store/useGame'
+import { initWidgetSync } from './widget'
 import BottomNav, { type ScreenKey } from './components/nav/BottomNav'
 import GrowthScreen from './screens/GrowthScreen'
 import ChecklistScreen from './screens/ChecklistScreen'
@@ -14,17 +14,16 @@ export default function App() {
   useEffect(() => {
     checkDailyReset()
     const iv = setInterval(checkDailyReset, 60_000)
-    return () => clearInterval(iv)
+    const unsub = initWidgetSync()
+    return () => { clearInterval(iv); unsub() }
   }, [checkDailyReset])
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg">
-      <AnimatePresence mode="wait">
-        {view === 'crescimento' && <GrowthScreen key="crescimento" />}
-        {view === 'checklist' && <ChecklistScreen key="checklist" />}
-        {view === 'recompensas' && <RewardsScreen key="recompensas" />}
-        {view === 'calendario' && <CalendarScreen key="calendario" />}
-      </AnimatePresence>
+      {view === 'crescimento' && <GrowthScreen key="crescimento" />}
+      {view === 'checklist' && <ChecklistScreen key="checklist" />}
+      {view === 'recompensas' && <RewardsScreen key="recompensas" />}
+      {view === 'calendario' && <CalendarScreen key="calendario" />}
 
       <BottomNav active={view} onChange={setView} />
     </div>
